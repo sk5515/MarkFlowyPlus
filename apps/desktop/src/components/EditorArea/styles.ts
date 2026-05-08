@@ -3,7 +3,8 @@ import styled from 'styled-components'
 export const Container = styled.div`
   position: relative;
   flex: 1;
-  overflow-x: auto;
+  min-width: 0;
+  overflow-x: hidden;
   overflow-y: hidden;
   display: flex;
   flex-direction: column;
@@ -21,7 +22,9 @@ export const Container = styled.div`
 
   .code-contents {
     flex: 1;
+    min-width: 0;
     display: flex;
+    overflow-x: hidden;
   }
 `
 
@@ -86,8 +89,10 @@ export const WarningHeader = styled.h3`
 
 export const EditorPanel = styled.div`
   flex: 1;
+  min-width: 0;
   display: flex;
   width: 100%;
   height: 100%;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 `

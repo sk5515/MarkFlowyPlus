@@ -1,5 +1,5 @@
 import { loadThemeCss, removeInsertedTheme } from '@/helper/extensions'
-import { builtInThemes, lightTheme, type MfTheme } from '@markflowy/theme'
+import { builtInThemes, darkTheme, lightTheme, type MfTheme } from '@markflowy/theme'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { create } from 'zustand'
 import useAppSettingStore from './useAppSettingStore'
@@ -10,7 +10,11 @@ export const isBuiltInTheme = (themeName: string) => {
 
 const useThemeStore = create<ThemeStore>((set, get) => {
   return {
-    curTheme: lightTheme,
+    curTheme: window.__MF_INITIAL_THEME_MODE__ === 'dark' ||
+      (window.__MF_INITIAL_THEME_MODE__ !== 'light' &&
+        window.matchMedia?.('(prefers-color-scheme: dark)').matches)
+      ? darkTheme
+      : lightTheme,
 
     themes: [...builtInThemes],
 

@@ -16,6 +16,17 @@ const Container = styled.span<ContainerProps>`
   padding: 4px;
   cursor: pointer;
   color: ${(props) => (props.checking ? props.theme.successColor : props.theme.primaryFontColor)};
+  outline: none;
+  box-shadow: none;
+  transition: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+  }
 `
 
 export const CopyButton: FC<CopyBtnProps> = (props) => {

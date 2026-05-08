@@ -1,7 +1,6 @@
 import {
   createFile,
   getFileNameFromPath,
-  readDirectory,
   updateFile,
   type IFile,
 } from '@/helper/filesys'
@@ -13,12 +12,10 @@ import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { nanoid } from 'nanoid'
 import { NodeRendererProps } from 'react-arborist'
 import { useTranslation } from 'react-i18next'
-import { Space, toast } from 'zens'
+import { toast } from 'zens'
 import { MODAL_CONFIRM_ID } from '../Modal'
-import { MfIconButton } from '../ui-v2/Button'
 import { showContextMenu } from '../ui-v2/ContextMenu'
 import { MoveFileInfo, moveFileNode } from './file-operator'
-import { fileTreeHandler } from './FileTree'
 import NewFileInput from './NewFIleInput'
 import { SimpleTree } from './SimpleTree'
 import { NodeContainer } from './styles'
@@ -30,11 +27,9 @@ function FileNode({
   tree,
   simpleTree,
   setFolderData,
-  isRoot = false,
 }: NodeRendererProps<IFile> & {
   simpleTree: SimpleTree<IFile>
   setFolderData: any
-  isRoot?: boolean
 }) {
   const indentSize = Number.parseFloat(`${style.paddingLeft || 0}`)
   const { t } = useTranslation()
@@ -391,58 +386,6 @@ function FileNode({
               </span>
             </div>
 
-            {isRoot ? (
-              <Space size={2}>
-                <MfIconButton
-                  size='small'
-                  rounded='smooth'
-                  icon={'ri-refresh-line'}
-                  onClick={async (e) => {
-                    e?.stopPropagation()
-                    e?.preventDefault()
-                    const rootPath = useEditorStore.getState().getRootPath()
-                    if (!rootPath) {
-                      toast.error('No workspace found')
-                      return
-                    }
-                    await readDirectory(rootPath).then((res) => {
-                      fileTreeHandler.updateTreeView?.({
-                        data: res,
-                      })
-                    })
-                  }}
-                  tooltipProps={{ title: t('explorer.refresh_folder_data') }}
-                />
-                <MfIconButton
-                  size='small'
-                  rounded='smooth'
-                  icon={'ri-focus-3-line'}
-                  onClick={(e) => {
-                    e?.stopPropagation()
-                    e?.preventDefault()
-
-                    const activeId = useEditorStore.getState().activeId
-                    if (activeId) {
-                      tree.scrollTo(activeId)
-                    }
-                  }}
-                  tooltipProps={{ title: t('explorer.focus_active_file') }}
-                />
-                <MfIconButton
-                  size='small'
-                  rounded='smooth'
-                  icon={'ri-collapse-vertical-fill'}
-                  onClick={(e) => {
-                    e?.stopPropagation()
-                    e?.preventDefault()
-
-                    tree.closeAll()
-                    node.open()
-                  }}
-                  tooltipProps={{ title: t('explorer.collapse_folders') }}
-                />
-              </Space>
-            ) : null}
           </div>
         )}
       </div>

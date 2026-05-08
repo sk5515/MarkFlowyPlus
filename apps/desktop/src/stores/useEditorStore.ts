@@ -1,4 +1,10 @@
-import { createFile, getFolderPathFromPath, isMdFile, type IFile } from '@/helper/filesys';
+import {
+  createFile,
+  getFolderPathFromPath,
+  isMdFile,
+  sortFileEntries,
+  type IFile,
+} from '@/helper/filesys';
 import { isEmptyEditor } from '@/services/editor-file';
 import { invoke } from '@tauri-apps/api/core';
 import type { EditorContext, EditorDelegate } from 'rme';
@@ -84,6 +90,7 @@ const useEditorStore = create<EditorStore>((set, get) => {
         })
 
         parent.children!.push(targetFile)
+        sortFileEntries(parent.children!)
         addOpenedFile(targetFile.id)
         await invoke('write_file', {
           filePath: targetFile.path,
@@ -118,6 +125,7 @@ const useEditorStore = create<EditorStore>((set, get) => {
         } else {
           parent.children!.push(fileNode)
         }
+        sortFileEntries(parent.children!)
 
         set((state) => {
           return {

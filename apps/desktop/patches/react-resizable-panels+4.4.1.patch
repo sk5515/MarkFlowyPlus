@@ -1,0 +1,72 @@
+diff --git a/node_modules/react-resizable-panels/dist/react-resizable-panels.js b/node_modules/react-resizable-panels/dist/react-resizable-panels.js
+--- a/node_modules/react-resizable-panels/dist/react-resizable-panels.js
++++ b/node_modules/react-resizable-panels/dist/react-resizable-panels.js
+@@ -888,33 +888,55 @@ function vt({
+   return o > 0 && i > 0 ? "move" : o > 0 ? "ew-resize" : "ns-resize";
+ }
+ const we = /* @__PURE__ */ new WeakMap();
++function RRP_createCursorStyleState(e) {
++  if ("adoptedStyleSheets" in e && typeof e.defaultView.CSSStyleSheet === "function")
++    try {
++      const t = new e.defaultView.CSSStyleSheet();
++      return e.adoptedStyleSheets = [...e.adoptedStyleSheets, t], {
++        styleSheet: t
++      };
++    } catch {
++    }
++  const t = e.createElement("style");
++  return t.setAttribute("data-react-resizable-panels-cursor", ""), (e.head ?? e.documentElement).appendChild(t), {
++    styleElement: t
++  };
++}
++function RRP_updateCursorStyleState(e, t) {
++  e.styleSheet ? t ? e.styleSheet.cssRules.length === 0 ? e.styleSheet.insertRule(t) : e.styleSheet.replaceSync(t) : e.styleSheet.cssRules.length === 1 && e.styleSheet.deleteRule(0) : e.styleElement && (e.styleElement.textContent = t ?? "");
++}
+ function fe(e) {
+   if (e.defaultView === null || e.defaultView === void 0)
+     return;
+-  let { prevStyle: t, styleSheet: n } = we.get(e) ?? {};
+-  n === void 0 && (n = new e.defaultView.CSSStyleSheet(), e.adoptedStyleSheets = [n]);
+-  const { cursorFlags: o, interactionState: i } = I();
+-  switch (i.state) {
++  let { prevStyle: t, styleSheet: n, styleElement: o } = we.get(e) ?? {};
++  (n === void 0 && o === void 0) && ({ styleSheet: n, styleElement: o } = RRP_createCursorStyleState(e));
++  const a = {
++    styleSheet: n,
++    styleElement: o
++  };
++  const { cursorFlags: i, interactionState: l } = I();
++  switch (l.state) {
+     case "active":
+     case "hover": {
+-      const a = vt({
+-        cursorFlags: o,
+-        groups: i.hitRegions.map((r) => r.group),
+-        state: i.state
+-      }), l = `*{cursor: ${a} !important; ${i.state === "active" ? "touch-action: none;" : ""} }`;
+-      if (t === l)
++      const r = vt({
++        cursorFlags: i,
++        groups: l.hitRegions.map((s) => s.group),
++        state: l.state
++      }), s = `*{cursor: ${r} !important; ${l.state === "active" ? "touch-action: none;" : ""} }`;
++      if (t === s)
+         return;
+-      t = l, a ? n.cssRules.length === 0 ? n.insertRule(l) : n.replaceSync(l) : n.cssRules.length === 1 && n.deleteRule(0);
++      t = s, RRP_updateCursorStyleState(a, r ? s : void 0);
+       break;
+     }
+     case "inactive": {
+-      t = void 0, n.cssRules.length === 1 && n.deleteRule(0);
++      t = void 0, RRP_updateCursorStyleState(a);
+       break;
+     }
+   }
+   we.set(e, {
+     prevStyle: t,
+-    styleSheet: n
++    styleSheet: n,
++    styleElement: o
+   });
+ }
+ function Ve({

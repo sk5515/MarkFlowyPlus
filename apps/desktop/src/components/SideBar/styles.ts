@@ -2,7 +2,7 @@ import styled from 'styled-components'
 
 export const SideBarHeader = styled.div`
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   padding: 4px;
   gap: 4px;
@@ -10,6 +10,19 @@ export const SideBarHeader = styled.div`
   height: 24px;
   background-color: ${(props) => props.theme.sideBarHeaderBgColor};
   border-bottom: 1px solid ${(props) => props.theme.borderColor};
+
+  .app-sidebar-tabs,
+  .app-sidebar-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .app-sidebar-actions {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
 `
 
 export const Container = styled.div<ContainerProps>`

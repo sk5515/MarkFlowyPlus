@@ -5,6 +5,7 @@ import useBookMarksStore from '@/extensions/bookmarks/useBookMarksStore'
 import bus from '@/helper/eventBus'
 import { getFileObject } from '@/helper/files'
 import { FileResultCode } from '@/helper/filesys'
+import { toggleEditorTypeShortcut } from '@/helper/keyboardShortcut'
 import { currentWindow } from '@/services/windows'
 import { useCommandStore, useEditorStateStore, useEditorStore } from '@/stores'
 import useEditorViewTypeStore from '@/stores/useEditorViewTypeStore'
@@ -119,12 +120,14 @@ export const SourceCodeMenuButton = memo(() => {
             {
               label: t('view.source_code'),
               value: EditorViewType.SOURCECODE,
+              shortcut: toggleEditorTypeShortcut,
               checked: editorViewType === EditorViewType.SOURCECODE,
               handler: () => bus.emit('editor_toggle_type', EditorViewType.SOURCECODE),
             },
             {
               label: t('view.wysiwyg'),
               value: EditorViewType.WYSIWYG,
+              shortcut: toggleEditorTypeShortcut,
               checked: editorViewType === EditorViewType.WYSIWYG,
               handler: () => bus.emit('editor_toggle_type', EditorViewType.WYSIWYG),
             },
@@ -196,6 +199,13 @@ export const SourceCodeMenuButton = memo(() => {
           label: t('contextmenu.editor_tab.export_image'),
           handler: () => {
             bus.emit('editor_export_image')
+          },
+        },
+        {
+          value: 'export_pdf',
+          label: t('contextmenu.editor_tab.export_pdf'),
+          handler: () => {
+            bus.emit('editor_export_pdf')
           },
         },
         {

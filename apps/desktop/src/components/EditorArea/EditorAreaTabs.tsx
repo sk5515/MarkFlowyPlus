@@ -57,6 +57,7 @@ const EditorAreaTabs = memo(() => {
   const { idStateMap } = useEditorStateStore()
   const htmlRef = useRef<HTMLDivElement>(null)
   const { t } = useTranslation()
+  const tabTooltipProps = { style: { zIndex: 3000 } } as any
 
   useEffect(() => {
     if (!htmlRef.current) return
@@ -236,7 +237,7 @@ const EditorAreaTabs = memo(() => {
           }
 
           return (
-            <Tooltip title={file.name} key={id}>
+            <Tooltip title={file.name} key={id} {...tabTooltipProps}>
               <TabItem
                 active={active}
                 onClick={() => onSelectItem(file.id)}

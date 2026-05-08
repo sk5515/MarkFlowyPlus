@@ -78,6 +78,13 @@ export const MoreActions = () => {
           },
         },
         {
+          value: 'export_pdf',
+          label: t('contextmenu.editor_tab.export_pdf'),
+          handler: () => {
+            bus.emit('editor_export_pdf')
+          },
+        },
+        {
           type: 'divider' as const,
         },
         {

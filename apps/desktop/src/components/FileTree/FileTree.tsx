@@ -179,7 +179,6 @@ const FileTree: FC<FileTreeProps> = (props) => {
               ...props,
               simpleTree: tree,
               setFolderData: setFolderDataPure,
-              isRoot,
             })
           }}
         </Tree>

@@ -11,7 +11,7 @@ import { create } from 'zustand'
 /**
  * A map of keybinding strings to event handlers.
  */
-export type KeyBindingMap = Record<string, (event: KeyboardEvent) => void>
+export type KeyBindingMap = Record<string, (event: KeyboardEvent) => boolean | void>
 
 interface EditorKeybindingStore {
   editorKeybingMap: Record<string, string>
@@ -46,6 +46,28 @@ const getKeyBinding = (keyMap: string[]) => {
   return keyBinding
 }
 
+const isEditorFocused = (event: KeyboardEvent) => {
+  const target = event.target instanceof HTMLElement ? event.target : null
+  const activeElement =
+    document.activeElement instanceof HTMLElement ? document.activeElement : null
+
+  return Boolean(
+    target?.closest('#editorarea-wrapper') || activeElement?.closest('#editorarea-wrapper'),
+  )
+}
+
+const shouldHandleKeybinding = (when: string, event: KeyboardEvent) => {
+  if (when === 'disabled') {
+    return false
+  }
+
+  if (when === 'editor_focus') {
+    return isEditorFocused(event)
+  }
+
+  return true
+}
+
 function useKeyboard() {
   const [keyboardInfos, setKeyboardInfos] = useState<KeyboardInfo[]>([])
   const { setEditorKeybingMap } = useEditorKeybindingStore()
@@ -72,8 +94,13 @@ function useKeyboard() {
           editorKeybingMap[key] = keybind
         } else {
           const keybind = getKeyBinding(keyboardInfo.key_map)
-          keybindingMap[keybind] = () => {
+          keybindingMap[keybind] = (event) => {
+            if (!shouldHandleKeybinding(keyboardInfo.when, event)) {
+              return false
+            }
+
             useCommandStore.getState().execute(keyboardInfo.id)
+            return true
           }
         }
       }
@@ -83,10 +110,10 @@ function useKeyboard() {
 
     const handler = createKeybindingsHandler(keybindingMap)
 
-    window.addEventListener('keydown', handler)
+    window.addEventListener('keydown', handler, true)
 
     return () => {
-      window.removeEventListener('keydown', handler)
+      window.removeEventListener('keydown', handler, true)
     }
   }, [keyboardInfos])
 

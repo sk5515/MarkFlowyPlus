@@ -28,7 +28,17 @@ const Wrapper = styled.div`
   font-size: ${(props) => props.theme.fontXs};
   gap: 4px;
   cursor: pointer;
+  outline: none;
+  box-shadow: none;
+  transition: none;
+  -webkit-tap-highlight-color: transparent;
 
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+  }
 
   &:hover {
     color: ${(props) => props.theme.accentColor};

@@ -155,7 +155,8 @@
       "close_right": "关闭右侧",
       "close_all": "关闭全部",
       "export_html": "导出为 HTML",
-      "export_image": "导出为图片"
+      "export_image": "导出为图片",
+      "export_pdf": "导出为 PDF"
     }
   },
   "notification": {},

@@ -3,6 +3,7 @@ import useBookMarksStore from '@/extensions/bookmarks/useBookMarksStore'
 import bus from '@/helper/eventBus'
 import { getFileObject } from '@/helper/files'
 import { FileResultCode } from '@/helper/filesys'
+import { toggleEditorTypeShortcut } from '@/helper/keyboardShortcut'
 import { addNewMarkdownFileEdit, isEmptyEditor } from '@/services/editor-file'
 import { currentWindow } from '@/services/windows'
 import { getWorkspace, WorkSpace } from '@/services/workspace'
@@ -234,6 +235,13 @@ ${res}
           },
         },
         {
+          value: 'export_pdf',
+          label: t('contextmenu.editor_tab.export_pdf'),
+          handler: () => {
+            bus.emit('editor_export_pdf')
+          },
+        },
+        {
           type: 'divider' as const,
         },
         {
@@ -283,12 +291,14 @@ ${res}
         {
           label: t('view.source_code'),
           value: EditorViewType.SOURCECODE,
+          shortcut: toggleEditorTypeShortcut,
           checked: editorViewType === EditorViewType.SOURCECODE,
           handler: () => bus.emit('editor_toggle_type', EditorViewType.SOURCECODE),
         },
         {
           label: t('view.wysiwyg'),
           value: EditorViewType.WYSIWYG,
+          shortcut: toggleEditorTypeShortcut,
           checked: editorViewType === EditorViewType.WYSIWYG,
           handler: () => bus.emit('editor_toggle_type', EditorViewType.WYSIWYG),
         },

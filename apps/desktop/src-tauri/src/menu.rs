@@ -49,6 +49,9 @@ pub fn generate_menu(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
                         .ok();
                 }
                 "Settings" => {
+                    app.emit_to(&focused_window_label, "app_openSetting", {})
+                        .map_err(|err| println!("{:?}", err))
+                        .ok();
                     app.emit_to(&focused_window_label, "native:menu", "app_openSetting")
                         .map_err(|err| println!("{:?}", err))
                         .ok();
@@ -71,9 +74,7 @@ pub fn generate_menu(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
                     &MenuItemBuilder::new("About MarkFlowy")
                         .id("About")
                         .build(app)?,
-                    &MenuItemBuilder::new("Settings")
-                        .id("Settings")
-                        .build(app)?,
+                    &MenuItemBuilder::new("Settings").id("Settings").build(app)?,
                     &PredefinedMenuItem::quit(app, Some("Quit"))?,
                 ],
             )?,

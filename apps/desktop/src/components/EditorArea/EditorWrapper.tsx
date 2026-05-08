@@ -7,6 +7,7 @@ interface EditorWrapperProps {
 
 export const EditorWrapper = styled.div.attrs<EditorWrapperProps>((props) => props)`
   flex: 1;
+  min-width: 0;
   height: 100%;
   box-sizing: border-box;
   position: relative;
@@ -21,7 +22,7 @@ export const EditorWrapper = styled.div.attrs<EditorWrapperProps>((props) => pro
   ${(props) =>
     props.active
       ? css({
-          maxWidth: props.fullWidth ? 'auto' : '800px',
+          maxWidth: props.fullWidth ? 'none' : '800px',
           margin: '0 auto',
           paddingBottom: '3rem',
           marginInlineStart: 'auto',
@@ -30,6 +31,7 @@ export const EditorWrapper = styled.div.attrs<EditorWrapperProps>((props) => pro
       : css({
           display: 'none',
         })}
+
 `
 
 export const EditorToc = styled.div`
@@ -43,4 +45,31 @@ export const EditorToc = styled.div`
   align-self: start;
   margin: 12px 12px 0 0;
   pointer-events: auto;
+`
+
+interface HeadingCursorIndicatorProps {
+  $left: number
+  $top: number
+}
+
+export const HeadingCursorIndicator = styled.div.attrs<HeadingCursorIndicatorProps>((props) => ({
+  style: {
+    left: `${props.$left}px`,
+    top: `${props.$top}px`,
+  },
+}))<HeadingCursorIndicatorProps>`
+  position: fixed;
+  z-index: 1000;
+  transform: translateY(-50%);
+  pointer-events: none;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  color: ${(props) => props.theme.unselectedFontColor};
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  user-select: none;
 `

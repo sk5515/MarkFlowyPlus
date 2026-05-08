@@ -71,6 +71,7 @@ pub_struct!(AppConf {
 
 pub const APP_CONF_PATH: &str = "markflowy.conf.json";
 pub const STORE_KEY: &str = "app_config_v3";
+const DEFAULT_THEME: &str = "MarkFlowy Dark";
 
 fn create_store(app: &AppHandle) -> Result<std::sync::Arc<Store<tauri::Wry>>, String> {
     let store_path = "markflowy_store.bin";
@@ -128,7 +129,7 @@ fn migrate_from_file(_app: &AppHandle) -> Option<AppConf> {
 impl AppConf {
     pub fn new() -> Self {
         Self {
-            theme: Some("light".to_string()),
+            theme: Some(DEFAULT_THEME.to_string()),
             language: Some("en".to_string()),
             auto_update: Some(false),
             webview_zoom: Some("1.0".to_string()),
@@ -145,7 +146,7 @@ impl AppConf {
             editor_code_font_family: Some("Fira Code".to_string()),
             wysiwyg_editor_spellcheck: Some(false),
             source_code_editor_spellcheck: Some(false),
-            wysiwyg_editor_codemirror_line_wrap: Some(true),
+            wysiwyg_editor_codemirror_line_wrap: Some(false),
             extensions_chatgpt_apibase: Some("".to_string()),
             extensions_chatgpt_models: Some("gpt-3.5-turbo,gpt-4-32k,gpt-4".to_string()),
             extensions_chatgpt_apikey: Some("".to_string()),

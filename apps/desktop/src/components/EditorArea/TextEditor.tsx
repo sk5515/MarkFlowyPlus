@@ -15,6 +15,7 @@ import {
 } from '@/helper/filesys'
 import { FileTypeConfig } from '@/helper/fileTypeHandler'
 import { logger } from '@/helper/logger'
+import { canvasToPdfBytes } from '@/helper/pdf'
 import { useEditorKeybindingStore } from '@/hooks/useKeyboard'
 import { useCommandStore, useEditorStateStore, useEditorStore } from '@/stores'
 import useAppSettingStore from '@/stores/useAppSettingStore'
@@ -43,7 +44,7 @@ import {
 } from 'rme'
 import { toast } from 'zens'
 import { createWysiwygDelegateOptions } from './createWysiwygDelegateOptions'
-import { EditorWrapper } from './EditorWrapper'
+import { EditorWrapper, HeadingCursorIndicator } from './EditorWrapper'
 import { WarningHeader } from './styles'
 
 type SaveHandlerParams = {
@@ -54,6 +55,12 @@ type SaveHandlerParams = {
   active?: boolean
   onSuccess?: () => void
   onFinally?: () => void
+}
+
+type HeadingIndicatorState = {
+  level: number
+  left: number
+  top: number
 }
 
 enum TextEditorStatus {
@@ -90,17 +97,118 @@ function TextEditor(props: TextEditorProps) {
   const { setEditorDelegate, setEditorCtx, getEditorContent, insertNodeToFolderData } =
     useEditorStore()
   const { execute } = useCommandStore()
+  const editorViewType =
+    useEditorViewTypeStore((state) => state.editorViewTypeMap.get(id)) || fileTypeConfig.defaultMode
   const { t } = useTranslation()
   const { settingData } = useAppSettingStore()
   const [content, setContent] = useState<string>()
+  const [headingIndicator, setHeadingIndicator] = useState<HeadingIndicatorState | null>(null)
   const [delegate, setDelegate] = useState(
     createDelegate(fileTypeConfig.defaultMode, fileTypeConfig.type),
   )
 
   const debounceSaveHandlerCacheRef = useRef<DebouncedFunc<() => Promise<void>>>(null)
   const noFileSaveingRef = useRef(false)
+  const editorWrapperRef = useRef<HTMLDivElement>(null)
   const editorRef = useRef<EditorRef>(null)
   const editorContextRef = useRef<EditorChangeEventParams>(null)
+
+  const updateCodeBlockMaxWidth = useCallback(() => {
+    const wrapper = editorWrapperRef.current
+    const editorPanel = document.querySelector('#editor-panel') as HTMLElement | null
+
+    if (!wrapper || !editorPanel) {
+      return
+    }
+
+    const panelRect = editorPanel.getBoundingClientRect()
+    const codeBlock = wrapper.querySelector('.cm-editor') as HTMLElement | null
+    const wrapperRect = wrapper.getBoundingClientRect()
+    const contentStart = codeBlock?.getBoundingClientRect().left || wrapperRect.left + 40
+    const availableWidth = Math.max(120, Math.floor(panelRect.right - contentStart))
+
+    wrapper.style.setProperty('--editor-code-block-max-width', `${availableWidth}px`)
+  }, [])
+
+  const updateHeadingIndicator = useCallback(
+    (state?: EditorChangeEventParams['state']) => {
+      const wrapper = editorWrapperRef.current
+      const view = delegate.manager.view
+
+      if (!active || editorViewType !== EditorViewType.WYSIWYG || !wrapper || !view) {
+        setHeadingIndicator(null)
+        return
+      }
+
+      const editorPanel = document.querySelector('#editor-panel') as HTMLElement | null
+      const visibleRect = editorPanel?.getBoundingClientRect() || wrapper.getBoundingClientRect()
+      const showIndicator = (level: number, rect: DOMRect) => {
+        const isVisible =
+          rect.width > 0 &&
+          rect.height > 0 &&
+          rect.bottom > visibleRect.top &&
+          rect.top < visibleRect.bottom &&
+          rect.right > visibleRect.left &&
+          rect.left < visibleRect.right
+
+        if (!isVisible) {
+          setHeadingIndicator(null)
+          return
+        }
+
+        setHeadingIndicator({
+          level,
+          left: Math.max(0, Math.round(rect.left - 32)),
+          top: Math.round(rect.top + rect.height / 2),
+        })
+      }
+
+      const domSelection = document.getSelection()
+      const selectionNode = domSelection?.isCollapsed ? domSelection.anchorNode : null
+      const selectionElement =
+        selectionNode instanceof HTMLElement ? selectionNode : selectionNode?.parentElement
+      const headingElement = selectionElement?.closest('h1,h2,h3,h4,h5,h6') as HTMLElement | null
+
+      if (headingElement && wrapper.contains(headingElement)) {
+        const rect = headingElement.getBoundingClientRect()
+        const level = Number(headingElement.tagName.slice(1))
+
+        showIndicator(level, rect)
+        return
+      }
+
+      const { selection } = state || view.state
+      if (!selection?.empty) {
+        setHeadingIndicator(null)
+        return
+      }
+
+      const { $from } = selection
+      const parent = $from.parent
+      const level = Number(parent?.attrs?.level)
+
+      if (parent?.type?.name !== 'heading' || !Number.isInteger(level)) {
+        setHeadingIndicator(null)
+        return
+      }
+
+      const headingPos = $from.depth > 0 ? $from.before($from.depth) : $from.pos
+      const headingNode = view.nodeDOM(headingPos) as HTMLElement | null
+      const fallbackHeadingElement =
+        headingNode?.matches('h1,h2,h3,h4,h5,h6')
+          ? headingNode
+          : (headingNode?.querySelector('h1,h2,h3,h4,h5,h6') as HTMLElement | null)
+      const rect = fallbackHeadingElement?.getBoundingClientRect()
+
+      if (!rect || !fallbackHeadingElement || !wrapper.contains(fallbackHeadingElement)) {
+        setHeadingIndicator(null)
+        return
+      }
+
+      showIndicator(level, rect)
+    },
+    [active, delegate.manager.view, editorViewType],
+  )
 
   useMount(async () => {
     setEditorDelegate(id, delegate)
@@ -112,6 +220,87 @@ function TextEditor(props: TextEditorProps) {
 
     delIdStateMap(id)
   })
+
+  useLayoutEffect(() => {
+    if (!active) {
+      return
+    }
+
+    const wrapper = editorWrapperRef.current
+    const editorPanel = document.querySelector('#editor-panel') as HTMLElement | null
+
+    updateCodeBlockMaxWidth()
+    const frame = window.requestAnimationFrame(updateCodeBlockMaxWidth)
+
+    const resizeObserver = new ResizeObserver(updateCodeBlockMaxWidth)
+    if (wrapper) {
+      resizeObserver.observe(wrapper)
+    }
+    if (editorPanel) {
+      resizeObserver.observe(editorPanel)
+    }
+
+    window.addEventListener('resize', updateCodeBlockMaxWidth)
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.removeEventListener('resize', updateCodeBlockMaxWidth)
+      resizeObserver.disconnect()
+    }
+  }, [
+    active,
+    content,
+    editorViewType,
+    settingData.editor_full_width,
+    updateCodeBlockMaxWidth,
+  ])
+
+  useLayoutEffect(() => {
+    if (!active || editorViewType !== EditorViewType.WYSIWYG) {
+      setHeadingIndicator(null)
+      return
+    }
+
+    const view = delegate.manager.view
+    if (!view) {
+      setHeadingIndicator(null)
+      return
+    }
+
+    const editorPanel = document.querySelector('#editor-panel') as HTMLElement | null
+    let updateFrame = 0
+    const update = () => {
+      window.cancelAnimationFrame(updateFrame)
+      updateFrame = window.requestAnimationFrame(() => updateHeadingIndicator())
+    }
+    const clear = () => setHeadingIndicator(null)
+    const initialFrame = window.requestAnimationFrame(update)
+
+    view.dom.addEventListener('focusin', update)
+    view.dom.addEventListener('focusout', clear)
+    view.dom.addEventListener('keyup', update)
+    view.dom.addEventListener('mouseup', update)
+    view.dom.addEventListener('pointerup', update)
+    document.addEventListener('selectionchange', update)
+    document.addEventListener('scroll', update, true)
+    editorPanel?.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+
+    return () => {
+      window.cancelAnimationFrame(initialFrame)
+      window.cancelAnimationFrame(updateFrame)
+      view.dom.removeEventListener('focusin', update)
+      view.dom.removeEventListener('focusout', clear)
+      view.dom.removeEventListener('keyup', update)
+      view.dom.removeEventListener('mouseup', update)
+      view.dom.removeEventListener('pointerup', update)
+      document.removeEventListener('selectionchange', update)
+      document.removeEventListener('scroll', update, true)
+      editorPanel?.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+      clear()
+    }
+  }, [active, delegate.manager.view, editorViewType, updateHeadingIndicator])
 
   useLayoutEffect(() => {
     const init = async () => {
@@ -392,6 +581,38 @@ function TextEditor(props: TextEditorProps) {
       })
     }
 
+    const exportPdfHandler = async () => {
+      if (!active) {
+        return
+      }
+
+      save({
+        title: t('contextmenu.editor_tab.export_pdf'),
+        defaultPath: curFile.name.split('.')?.[0] + '.pdf',
+      }).then(async (path) => {
+        if (!path) return
+
+        const n = toast.loading(t('contextmenu.editor_tab.export_pdf') + '...')
+
+        html2canvas(document.getElementById(id) as HTMLElement).then((canvas) => {
+          const data = canvasToPdfBytes(canvas)
+
+          invoke('write_u8_array_to_file', { filePath: path, content: data })
+            .then(() => {
+              toast.dismiss(n)
+              toast.success('Exported to ' + path)
+            })
+            .catch((error) => {
+              toast.dismiss(n)
+              toast.error(String(error))
+            })
+        }).catch((error) => {
+          toast.dismiss(n)
+          toast.error(String(error))
+        })
+      })
+    }
+
     const exportHtmlHandler = async () => {
       if (!active) {
         return
@@ -440,11 +661,13 @@ function TextEditor(props: TextEditorProps) {
 
     bus.on('editor_export_html', exportHtmlHandler)
     bus.on('editor_export_image', exportImageHandler)
+    bus.on('editor_export_pdf', exportPdfHandler)
     bus.on('editor_set_content', setContentHandler)
 
     return () => {
       bus.detach('editor_export_html', exportHtmlHandler)
       bus.detach('editor_export_image', exportImageHandler)
+      bus.detach('editor_export_pdf', exportPdfHandler)
       bus.detach('editor_set_content', setContentHandler)
     }
   }, [active, setContentHandler])
@@ -550,6 +773,7 @@ function TextEditor(props: TextEditorProps) {
 
       if (!active) return
       editorContextRef.current = params
+      updateHeadingIndicator(params.state)
 
       if (tr?.docChanged && !tr.getMeta('APPLY_MARKS')) {
         const state = {
@@ -566,7 +790,7 @@ function TextEditor(props: TextEditorProps) {
         }
       }
     },
-    [id, debounceSaveHandler, active, debounceRefreshToc, settingData],
+    [id, debounceSaveHandler, active, debounceRefreshToc, settingData, updateHeadingIndicator],
   )
 
   if (status === TextEditorStatus.NOTEXIST) {
@@ -579,16 +803,22 @@ function TextEditor(props: TextEditorProps) {
 
   const cls = classNames('markdown-body', {
     'editor-active': active,
-  })
+  }, `editor-view-${editorViewType}`)
 
   return (
     <EditorWrapper
+      ref={editorWrapperRef}
       id='editorarea-wrapper'
       className={cls}
       fullWidth={settingData.editor_full_width}
       active={active}
       onClick={handleWrapperClick}
     >
+      {headingIndicator ? (
+        <HeadingCursorIndicator $left={headingIndicator.left} $top={headingIndicator.top}>
+          H{headingIndicator.level}
+        </HeadingCursorIndicator>
+      ) : null}
       <MfEditor ref={editorRef} onChange={handleChange} {...editorProps} />
     </EditorWrapper>
   )

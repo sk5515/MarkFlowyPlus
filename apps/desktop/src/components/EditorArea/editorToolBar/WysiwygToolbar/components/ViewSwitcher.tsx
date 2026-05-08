@@ -1,5 +1,6 @@
 import bus from '@/helper/eventBus'
 import { getFileObject } from '@/helper/files'
+import { toggleEditorTypeShortcut } from '@/helper/keyboardShortcut'
 import { useEditorStore } from '@/stores'
 import useEditorViewTypeStore from '@/stores/useEditorViewTypeStore'
 import useFileTypeConfigStore from '@/stores/useFileTypeConfigStore'
@@ -38,12 +39,14 @@ export const ViewSwitcher = () => {
         {
           label: t('view.source_code'),
           value: EditorViewType.SOURCECODE,
+          shortcut: toggleEditorTypeShortcut,
           checked: editorViewType === EditorViewType.SOURCECODE,
           handler: () => bus.emit('editor_toggle_type', EditorViewType.SOURCECODE),
         },
         {
           label: t('view.wysiwyg'),
           value: EditorViewType.WYSIWYG,
+          shortcut: toggleEditorTypeShortcut,
           checked: editorViewType === EditorViewType.WYSIWYG,
           handler: () => bus.emit('editor_toggle_type', EditorViewType.WYSIWYG),
         },

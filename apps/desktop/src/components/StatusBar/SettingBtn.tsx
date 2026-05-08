@@ -5,7 +5,7 @@ import { currentWindow } from '@/services/windows'
 import { useCommandStore } from '@/stores'
 import useThemeStore from '@/stores/useThemeStore'
 import { emitTo } from '@tauri-apps/api/event'
-import { memo, useCallback, useRef } from 'react'
+import { memo, type MouseEvent, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 import { showContextMenu } from '../ui-v2/ContextMenu/ContextMenu'
@@ -29,7 +29,9 @@ export const CenterMenu = memo(() => {
     })
   }, [themes, curTheme, setCurThemeByName])
 
-  const handleClick = () => {
+  const handleOpenMenu = (event: MouseEvent<HTMLDivElement>) => {
+    event.preventDefault()
+
     if (!ref.current) {
       return
     }
@@ -67,7 +69,12 @@ export const CenterMenu = memo(() => {
   }
 
   return (
-    <Container className='icon-small icon-smooth' ref={ref} onClick={handleClick}>
+    <Container
+      className='icon-small icon-smooth'
+      ref={ref}
+      onClick={handleOpenMenu}
+      onContextMenu={handleOpenMenu}
+    >
       <i className='ri-settings-3-line'></i>
     </Container>
   )

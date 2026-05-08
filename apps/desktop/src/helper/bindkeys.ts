@@ -110,9 +110,18 @@ export function keydownHandler(bindings: {
 }
 
 interface KeyBindingMap {
-  [key: string]: (event: KeyboardEvent) => void
+  [key: string]: (event: KeyboardEvent) => boolean | void
 }
 
 export function createKeybindingsHandler(keyBindingMap: KeyBindingMap) {
-  return keydownHandler(keyBindingMap)
+  const handler = keydownHandler(keyBindingMap)
+
+  return (event: KeyboardEvent) => {
+    if (!handler(event)) {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+  }
 }

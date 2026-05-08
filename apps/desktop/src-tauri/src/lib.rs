@@ -56,6 +56,11 @@ pub fn run() {
     dotenv::dotenv().ok();
 
     let context = tauri::generate_context!();
+    let window_state_flags = StateFlags::SIZE
+        | StateFlags::POSITION
+        | StateFlags::MAXIMIZED
+        | StateFlags::DECORATIONS
+        | StateFlags::FULLSCREEN;
 
     tauri::Builder::default()
         .manage(OpenedUrls(Default::default()))
@@ -67,22 +72,29 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_window_state::Builder::default().build())
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .with_state_flags(window_state_flags)
+                .with_denylist(&[setup::STARTUP_SPLASH_LABEL])
+                .build(),
+        )
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_single_instance::init(|app_handle: &tauri::AppHandle, args: Vec<String>, cwd: String| {
-            // 提取文件路径参数（args[0]是程序本身，args[1..]是传递的参数）
-            let opened_urls = if args.len() > 1 {
-                // 跳过程序本身，将其余参数用逗号连接
-                args[1..].join(",")
-            } else {
-                "".to_string()
-            };
-            
-            // 调用setup函数处理参数和窗口复用逻辑
-            if let Err(e) = crate::setup::init(app_handle.clone(), opened_urls) {
-                println!("单例参数处理失败: {:?}", e);
-            }
-        }))
+        .plugin(tauri_plugin_single_instance::init(
+            |app_handle: &tauri::AppHandle, args: Vec<String>, cwd: String| {
+                // 提取文件路径参数（args[0]是程序本身，args[1..]是传递的参数）
+                let opened_urls = if args.len() > 1 {
+                    // 跳过程序本身，将其余参数用逗号连接
+                    args[1..].join(",")
+                } else {
+                    "".to_string()
+                };
+
+                // 调用setup函数处理参数和窗口复用逻辑
+                if let Err(e) = crate::setup::init(app_handle.clone(), opened_urls) {
+                    println!("单例参数处理失败: {:?}", e);
+                }
+            },
+        ))
         .invoke_handler(tauri::generate_handler![
             fc::cmd::open_folder,
             fc::cmd::open_folder_async,
@@ -184,9 +196,9 @@ pub fn run() {
 
             Ok(())
         })
-        .on_window_event(|window, event| {
+        .on_window_event(move |window, event| {
             let app = window.app_handle();
-            let _ = app.save_window_state(StateFlags::all());
+            let _ = app.save_window_state(window_state_flags);
 
             if let tauri::WindowEvent::Destroyed = event {
                 let window_label = window.label();

@@ -5,11 +5,73 @@
     <link rel="icon" type="image/svg+xml" href="/src/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MarkFlowy</title>
+    <style>
+      :root,
+      html,
+      body,
+      #root {
+        min-height: 100%;
+        margin: 0;
+        background: #ffffff;
+        color: #000000;
+        color-scheme: light;
+      }
+
+      html[data-theme-mode='dark'],
+      html[data-theme-mode='dark'] body,
+      html[data-theme-mode='dark'] #root {
+        background: #131313;
+        color: #caccca;
+        color-scheme: dark;
+      }
+
+      html[data-theme-mode='light'],
+      html[data-theme-mode='light'] body,
+      html[data-theme-mode='light'] #root {
+        background: #ffffff;
+        color: #000000;
+        color-scheme: light;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme-mode]),
+        html:not([data-theme-mode]) body,
+        html:not([data-theme-mode]) #root {
+          background: #131313;
+          color: #caccca;
+          color-scheme: dark;
+        }
+      }
+    </style>
+    <script>
+      ;(function () {
+        var mode = window.__MF_INITIAL_THEME_MODE__
+        if (mode !== 'dark' && mode !== 'light') {
+          mode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.dataset.themeMode = mode
+        document.documentElement.style.colorScheme = mode
+      })()
+    </script>
   </head>
   <body class="dark">
     <div id="root"></div>
     <script>
       console.log('%cMarkFlowy Developer Console', 'color:#016ab3; font-size:40px; font-weight:bold;')
+      window.addEventListener('error', function (event) {
+        var root = document.getElementById('root')
+        if (!root || root.children.length) return
+        root.innerHTML = '<pre style="white-space:pre-wrap;padding:16px;color:#ff7a7a;background:#1f1f1f;font:13px/1.5 monospace;">' +
+          'MarkFlowy failed to start:\\n' + String(event.message || event.error || 'Unknown error') +
+          '</pre>'
+      })
+      window.addEventListener('unhandledrejection', function (event) {
+        var root = document.getElementById('root')
+        if (!root || root.children.length) return
+        root.innerHTML = '<pre style="white-space:pre-wrap;padding:16px;color:#ff7a7a;background:#1f1f1f;font:13px/1.5 monospace;">' +
+          'MarkFlowy failed to start:\\n' + String(event.reason && (event.reason.stack || event.reason.message) || event.reason || 'Unhandled promise rejection') +
+          '</pre>'
+      })
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>

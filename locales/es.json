@@ -144,7 +144,8 @@
       "close_right": "Cerrar a la derecha",
       "close_all": "Cerrar todo",
       "export_html": "Exportar a HTML",
-      "export_image": "Exportar como imagen"
+      "export_image": "Exportar como imagen",
+      "export_pdf": "Exportar a PDF"
     }
   },
   "notification": {},

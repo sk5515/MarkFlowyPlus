@@ -56,7 +56,10 @@ fn build_theme(path: PathBuf) -> Option<Theme> {
 
 impl AppThemes {
     pub fn new() -> Self {
-        Self { themes: vec![], local_themes: vec![] }
+        Self {
+            themes: vec![],
+            local_themes: vec![],
+        }
     }
 
     pub fn dir_path() -> PathBuf {
@@ -141,10 +144,10 @@ impl Default for AppThemes {
 pub mod cmd {
     use super::{AppThemes, LocalTheme, Theme};
     use crate::fc::exists;
-    use tauri::command;
+    use download_npm;
     use std::fs::create_dir;
     use std::path::PathBuf;
-    use download_npm;
+    use tauri::command;
 
     #[command]
     pub async fn load_themes() -> Vec<Theme> {
@@ -159,7 +162,7 @@ pub mod cmd {
     #[command]
     pub async fn import_local_theme(file_path: String) -> Result<LocalTheme, String> {
         let source_path = PathBuf::from(&file_path);
-        
+
         if !source_path.exists() {
             return Err("File does not exist".to_string());
         }
@@ -168,27 +171,26 @@ pub mod cmd {
             return Err("Only CSS files are supported".to_string());
         }
 
-        let file_name = source_path.file_stem()
+        let file_name = source_path
+            .file_stem()
             .ok_or("Invalid file name")?
             .to_str()
             .ok_or("Invalid file name encoding")?
             .to_string();
 
         let dest_dir = AppThemes::local_themes_dir_path();
-        
+
         if !exists(&dest_dir) {
             create_dir(&dest_dir);
         }
 
         let dest_path = dest_dir.join(format!("{}.css", file_name));
 
-        std::fs::copy(&source_path, &dest_path).map_err(|e| {
-            format!("Failed to copy file: {}", e)
-        })?;
+        std::fs::copy(&source_path, &dest_path)
+            .map_err(|e| format!("Failed to copy file: {}", e))?;
 
-        let css_content = std::fs::read_to_string(&dest_path).map_err(|e| {
-            format!("Failed to read file: {}", e)
-        })?;
+        let css_content = std::fs::read_to_string(&dest_path)
+            .map_err(|e| format!("Failed to read file: {}", e))?;
 
         Ok(LocalTheme {
             id: file_name.clone(),
@@ -201,15 +203,13 @@ pub mod cmd {
     #[command]
     pub async fn remove_local_theme(id: String) -> Result<(), String> {
         let local_themes = AppThemes::default().init().await.local_themes;
-        
+
         let theme = local_themes.iter().find(|t| t.id == id);
-        
+
         if let Some(theme) = theme {
             let path = PathBuf::from(&theme.path);
             if path.exists() {
-                std::fs::remove_file(&path).map_err(|e| {
-                    format!("Failed to remove file: {}", e)
-                })?;
+                std::fs::remove_file(&path).map_err(|e| format!("Failed to remove file: {}", e))?;
             }
         }
 
@@ -220,11 +220,14 @@ pub mod cmd {
     pub async fn download_theme(name: String) -> Result<(), String> {
         let dir_path = AppThemes::dir_path();
         // Handle invalid path encoding to prevent runtime panics and provide debug context
-        let dest_path = dir_path.to_str().ok_or_else(|| {
-            let err_msg = format!("Invalid theme directory path: {:?}", dir_path);
-            tracing::error!("{}", err_msg);
-            err_msg
-        })?.to_string();
+        let dest_path = dir_path
+            .to_str()
+            .ok_or_else(|| {
+                let err_msg = format!("Invalid theme directory path: {:?}", dir_path);
+                tracing::error!("{}", err_msg);
+                err_msg
+            })?
+            .to_string();
 
         download_npm::download(
             &name,

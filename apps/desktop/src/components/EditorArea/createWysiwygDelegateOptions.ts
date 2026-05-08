@@ -69,7 +69,7 @@ export const createWysiwygDelegateOptions = (fileId?: string): CreateWysiwygDele
     disableAllBuildInShortcuts: true,
     overrideShortcutMap: useEditorKeybindingStore.getState().editorKeybingMap,
     codemirrorOptions: {
-      lineWrapping: settingData.wysiwyg_editor_codemirror_line_wrap,
+      lineWrapping: false,
     },
     clipboardReadFunction: clipboardRead,
     uploadImageHandler: (files) => {

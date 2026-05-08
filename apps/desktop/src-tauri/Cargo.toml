@@ -106,6 +106,7 @@ version = "2.9.4"
 features = [
     "protocol-asset",
     "devtools",
+    "unstable",
 ]
 
 [dependencies.mf-utils]

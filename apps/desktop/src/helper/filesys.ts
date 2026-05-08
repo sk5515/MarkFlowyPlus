@@ -36,6 +36,62 @@ export interface FileSysResult {
   content: string
 }
 
+const chineseNameCollator = new Intl.Collator('zh-Hans-u-co-pinyin', {
+  numeric: true,
+  sensitivity: 'base',
+})
+
+const defaultNameCollator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: 'base',
+})
+
+const hasChineseChar = (name: string) => /[\u3400-\u9fff\uf900-\ufaff]/.test(name)
+
+const getKindOrder = (kind: FileEntry['kind']) => {
+  if (kind === 'dir' || kind === 'pending_new_folder' || kind === 'pending_edit_folder') return 0
+  if (kind === 'file' || kind === 'pending_new_file' || kind === 'pending_edit_file') return 1
+  return 2
+}
+
+export const compareFilesByKindAndName = (a: FileEntry, b: FileEntry) => {
+  const kindOrder = getKindOrder(a.kind) - getKindOrder(b.kind)
+  if (kindOrder !== 0) return kindOrder
+
+  const aHasChinese = hasChineseChar(a.name)
+  const bHasChinese = hasChineseChar(b.name)
+  if (aHasChinese !== bHasChinese) return aHasChinese ? -1 : 1
+
+  const nameCompare = (aHasChinese ? chineseNameCollator : defaultNameCollator).compare(
+    a.name,
+    b.name,
+  )
+  if (nameCompare !== 0) return nameCompare
+
+  return defaultNameCollator.compare(a.path || a.name, b.path || b.name)
+}
+
+export const sortFileEntries = <T extends FileEntry>(entries: T[]) => {
+  entries.sort(compareFilesByKindAndName)
+  entries.forEach((entry) => {
+    if (entry.children) {
+      sortFileEntries(entry.children)
+    }
+  })
+  return entries
+}
+
+const filterVisibleFileEntries = <T extends FileEntry>(entries: T[]): T[] => {
+  return entries
+    .filter((entry) => !entry.name.startsWith('.'))
+    .map((entry) => {
+      if (entry.children) {
+        entry.children = filterVisibleFileEntries(entry.children)
+      }
+      return entry
+    })
+}
+
 const wrapFiles = (entries: FileEntry[]) => {
   entries.forEach((entry) => {
     ;(entry as IFile).id = getFileObjectByPath(entry.path)?.id || nanoid()
@@ -87,7 +143,7 @@ export const readDirectory = (folderPath: string): Promise<IFile[]> => {
           return
         }
         const mess = message.content
-        const files = JSON.parse(mess)
+        const files = filterVisibleFileEntries<FileEntry>(JSON.parse(mess) as FileEntry[])
         const entries: IFile[] = []
 
         if (!files || !files.length) {
@@ -106,9 +162,10 @@ export const readDirectory = (folderPath: string): Promise<IFile[]> => {
         for (let i = 0; i < files.length; i++) {
           const file = files[i]
 
-          entries.push(file)
+          entries.push(file as IFile)
         }
 
+        sortFileEntries(entries)
         wrapFiles(entries)
 
         const folderName = await invoke<string>('get_path_name', {

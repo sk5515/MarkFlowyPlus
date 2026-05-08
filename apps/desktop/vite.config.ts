@@ -7,6 +7,7 @@ import svgr from 'vite-plugin-svgr'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: './',
   server: {
     port: 3000,
   },
@@ -27,6 +28,8 @@ export default defineConfig({
     }),
   ],
   build: {
+    target: ['es2020', 'safari13'],
+    cssTarget: 'safari13',
     minify: 'esbuild',
     rollupOptions: {},
   },

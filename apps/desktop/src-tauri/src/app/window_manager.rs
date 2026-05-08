@@ -1,7 +1,7 @@
 use crate::WINDOW_INSTANCES;
 use serde_json;
-use std::path::PathBuf;
-use tauri::{command, AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
+use std::{path::PathBuf, time::Duration};
+use tauri::{command, utils::config::Color, AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 use uuid;
 
 use super::conf::AppConf;
@@ -29,6 +29,16 @@ pub fn get_window_instances() -> Result<std::collections::HashMap<String, String
 #[command]
 pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String, String> {
     let theme = AppConf::theme_mode(&_app.clone());
+    let theme_mode = match theme {
+        tauri::Theme::Dark => "dark",
+        tauri::Theme::Light => "light",
+        _ => "light",
+    };
+    let window_bg_color = if theme_mode == "dark" {
+        Color(19, 19, 19, 255)
+    } else {
+        Color(255, 255, 255, 255)
+    };
     let workspace_path = path.clone().map(PathBuf::from);
 
     // 检查是否已存在打开相同路径的窗口
@@ -102,12 +112,18 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
     tauri::async_runtime::spawn(async move {
         let mut new_win =
             WebviewWindowBuilder::new(&_app, window_label, WebviewUrl::App("index.html".into()))
+                .initialization_script(&format!(
+                    "window.__MF_INITIAL_THEME_MODE__ = '{}'; document.documentElement.dataset.themeMode = '{}'; document.documentElement.style.colorScheme = '{}'; document.body && (document.body.style.colorScheme = '{}');",
+                    theme_mode, theme_mode, theme_mode, theme_mode
+                ))
                 .initialization_script(&format!("window.openedUrls = {escaped_urls}"))
                 .initialization_script(&format!("console.log('window.openedUrl:{}')", escaped_urls))
                 .title("MarkFlowy")
                 .resizable(true)
                 .fullscreen(false)
                 .theme(Some(theme))
+                .background_color(window_bg_color)
+                .visible(false)
                 .disable_drag_drop_handler()
                 .inner_size(1200.0, 800.0)
                 .min_inner_size(400.0, 400.0);
@@ -122,7 +138,10 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
         //     new_win = new_win.decorations(false);
         // }
 
-        new_win.build().unwrap();
+        let window = new_win.build().unwrap();
+        tokio::time::sleep(Duration::from_millis(800)).await;
+        let _ = window.show();
+        let _ = window.set_focus();
     });
 
     Ok(window_label_clone)

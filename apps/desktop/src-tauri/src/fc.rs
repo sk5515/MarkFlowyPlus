@@ -44,6 +44,10 @@ pub struct FileResult {
     pub content: String,
 }
 
+fn is_hidden_file_name(file_name: &str) -> bool {
+    file_name.starts_with('.')
+}
+
 pub fn read_directory(dir_path: &str) -> Result<Vec<FileInfo>, FileResultCode> {
     // 同步版本保留，作为兼容性接口
     let new_path = Path::new(dir_path);
@@ -78,6 +82,10 @@ pub fn read_directory(dir_path: &str) -> Result<Vec<FileInfo>, FileResultCode> {
             Ok(str) => str,
             Err(_) => continue,
         };
+
+        if is_hidden_file_name(&filename) {
+            continue;
+        }
 
         let file_path = new_path.join(filename.clone());
         let ext = file_path.extension();
