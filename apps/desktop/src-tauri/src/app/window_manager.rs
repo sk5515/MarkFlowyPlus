@@ -9,6 +9,9 @@ use tauri::{
 };
 use uuid;
 
+#[cfg(target_os = "macos")]
+use tauri::{LogicalPosition, TitleBarStyle};
+
 use super::conf::AppConf;
 
 /// 获取所有窗口实例信息
@@ -112,7 +115,7 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
     println!("escaped_urls:{}", escaped_urls);
     println!("path:{}", path.as_ref().unwrap());
     tauri::async_runtime::spawn(async move {
-        let new_win =
+        let mut new_win =
             WebviewWindowBuilder::new(&_app, window_label, WebviewUrl::App("index.html".into()))
                 .initialization_script(compat::webview_init_script())
                 .initialization_script(&format!(
@@ -136,6 +139,13 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
                 .disable_drag_drop_handler()
                 .inner_size(1200.0, 800.0)
                 .min_inner_size(400.0, 400.0);
+
+        #[cfg(target_os = "macos")]
+        {
+            new_win = new_win
+                .title_bar_style(TitleBarStyle::Overlay)
+                .traffic_light_position(LogicalPosition::new(14.0, 11.0));
+        }
 
         let window = new_win.build().unwrap();
         let _ = window;

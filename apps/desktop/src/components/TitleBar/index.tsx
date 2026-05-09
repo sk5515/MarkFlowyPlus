@@ -14,6 +14,11 @@ import {
   WindowControls,
 } from './styled'
 
+const isMacOS =
+  typeof navigator !== 'undefined' &&
+  (/Mac|iP(hone|[oa]d)/.test(navigator.platform) ||
+    /macintosh|mac os x/i.test(navigator.userAgent))
+
 export default function TitleBar() {
   const [maximized, setMaximized] = useState(false)
 
@@ -42,8 +47,10 @@ export default function TitleBar() {
 
   return (
     <Container>
-      <LeftContainer>
+      <LeftContainer $isMacOS={isMacOS}>
         <CenterMenu />
+        <LayoutLeftBtn />
+        <LayoutRightBtn />
         <WorkspaceBtn />
       </LeftContainer>
 
@@ -52,11 +59,9 @@ export default function TitleBar() {
       <RightContainer>
         <TaskList />
         <EditorCount />
-        <LayoutLeftBtn />
-        <LayoutRightBtn />
       </RightContainer>
 
-      <WindowControls>
+      <WindowControls $isMacOS={isMacOS}>
         <WindowControlButton aria-label='Minimize' onClick={() => currentWindow.minimize()}>
           <i className='ri-subtract-line' />
         </WindowControlButton>

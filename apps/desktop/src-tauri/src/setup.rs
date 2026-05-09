@@ -8,6 +8,9 @@ use tauri::{
     AppHandle, Emitter, WebviewWindowBuilder,
 };
 
+#[cfg(target_os = "macos")]
+use tauri::{LogicalPosition, TitleBarStyle};
+
 pub fn init(app_handle: AppHandle, opened_urls: String) -> Result<(), Box<dyn std::error::Error>> {
     // 首先检查是否已经存在窗口
     if let Some(existing_window) = window_manager::get_last_opened_window(&app_handle) {
@@ -30,7 +33,7 @@ pub fn init(app_handle: AppHandle, opened_urls: String) -> Result<(), Box<dyn st
         Color(255, 255, 255, 255)
     };
 
-    let main_win = WebviewWindowBuilder::new(
+    let mut main_win = WebviewWindowBuilder::new(
         &app_handle,
         "main".to_string(),
         WebviewUrl::App("index.html".into()),
@@ -59,6 +62,13 @@ pub fn init(app_handle: AppHandle, opened_urls: String) -> Result<(), Box<dyn st
     .disable_drag_drop_handler()
     .inner_size(1200.0, 800.0)
     .min_inner_size(400.0, 400.0);
+
+    #[cfg(target_os = "macos")]
+    {
+        main_win = main_win
+            .title_bar_style(TitleBarStyle::Overlay)
+            .traffic_light_position(LogicalPosition::new(14.0, 11.0));
+    }
 
     let window = main_win.build()?;
 

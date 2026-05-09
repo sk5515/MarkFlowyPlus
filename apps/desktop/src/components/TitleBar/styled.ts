@@ -14,13 +14,14 @@ export const Container = styled.div`
   font-size: 0.8rem;
 `
 
-export const LeftContainer = styled.div`
+export const LeftContainer = styled.div<{ $isMacOS?: boolean }>`
   flex: 0 1 auto;
   min-width: 0;
   display: flex;
   align-items: center;
   gap: ${(props) => props.theme.spaceSm};
   height: 100%;
+  padding-left: ${(props) => props.$isMacOS ? '74px' : '0'};
 `
 
 export const CenterDragRegion = styled.div`
@@ -40,9 +41,9 @@ export const RightContainer = styled.div`
   overflow: hidden;
 `
 
-export const WindowControls = styled.div`
+export const WindowControls = styled.div<{ $isMacOS?: boolean }>`
   flex: 0 0 auto;
-  display: flex;
+  display: ${(props) => props.$isMacOS ? 'none' : 'flex'};
   align-items: stretch;
   align-self: stretch;
   margin-left: 4px;
