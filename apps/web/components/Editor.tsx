@@ -27,7 +27,7 @@ const Editor = (props: { viewType?: string; initialContent?: string }) => {
 
   const initialContent =
     props.initialContent ||
-    `##### Welcome to MarkFlowy!`
+    `##### Welcome to MarkFlowyPlus!`
 
   if (loading) {
     return <LoadingContainer>Loading Editor...</LoadingContainer>

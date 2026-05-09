@@ -19,7 +19,7 @@ const PlaygroundContainer = styled.div`
 const PlaygroundContent = () => {
   const [viewType, setViewType] = useState<string>('wysiwyg')
 
-  const initialContent = `# Welcome to Markflowy Playground
+  const initialContent = `# Welcome to MarkFlowyPlus Playground
 
 This is a **playground** page where you can experiment with the RME editor.
 
@@ -36,7 +36,7 @@ Start typing below to see the editor in action!
 
 \`\`\`javascript
 function hello() {
-  console.log("Hello, Markflowy!");
+  console.log("Hello, MarkFlowyPlus!");
 }
 \`\`\`
 

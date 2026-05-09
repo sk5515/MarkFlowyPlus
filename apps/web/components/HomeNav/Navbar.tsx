@@ -38,10 +38,10 @@ export default function Navbar({
 
         <NormalNavbar>
           <StartWrapper>
-            <LogoLink aria-label='MarkFlowy logo' href={`./${i18n?.language || 'en'}`}>
+            <LogoLink aria-label='MarkFlowyPlus logo' href={`./${i18n?.language || 'en'}`}>
               <Logo />
               <Brand> / </Brand>
-              <strong>MarkFlowy</strong>
+              <strong>MarkFlowyPlus</strong>
             </LogoLink>
 
             <NavLinks />

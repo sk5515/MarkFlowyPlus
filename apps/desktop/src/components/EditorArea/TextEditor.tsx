@@ -496,6 +496,45 @@ function TextEditor(props: TextEditorProps) {
 
   const editorTypeSwitchingRef = useRef(false)
 
+  const focusEditorAfterTypeSwitch = useCallback(
+    (viewType: EditorViewType, nextDelegate?: ReturnType<typeof createDelegate>) => {
+      let retryCount = 0
+
+      const focus = () => {
+        if (!active) {
+          return
+        }
+
+        if (viewType === EditorViewType.SOURCECODE) {
+          const sourceCodeView = sourceCodeCodemirrorViewMap.get(curFile.id)?.cm
+          if (sourceCodeView) {
+            sourceCodeView.focus()
+            return
+          }
+        }
+
+        const targetDelegate = nextDelegate ?? delegate
+        targetDelegate.manager.view.focus()
+
+        const editable = editorWrapperRef.current?.querySelector<HTMLElement>(
+          '.cm-content, [contenteditable="true"]',
+        )
+        editable?.focus()
+      }
+
+      const retryFocus = () => {
+        focus()
+        retryCount += 1
+        if (retryCount < 6) {
+          setTimeout(retryFocus, 50)
+        }
+      }
+
+      setTimeout(retryFocus, 0)
+    },
+    [active, curFile.id, delegate],
+  )
+
   useEffect(() => {
     const cb = throttle((payload: EditorViewType) => {
       if (active) {
@@ -517,6 +556,7 @@ function TextEditor(props: TextEditorProps) {
                 clipboardReadFunction: clipboardRead,
                 onCodemirrorViewLoad: (cmView) => {
                   sourceCodeCodemirrorViewMap.set(curFile.id, cmView)
+                  focusEditorAfterTypeSwitch(payload)
                   setTimeout(() => {
                     execute('app:toc_refresh')
                   })
@@ -524,6 +564,7 @@ function TextEditor(props: TextEditorProps) {
               })
               setEditorDelegate(curFile.id, sourceCodeDelegate)
               setDelegate(sourceCodeDelegate)
+              focusEditorAfterTypeSwitch(payload, sourceCodeDelegate)
             } else if (payload === EditorViewType.PREVIEW) {
               debounceRefreshToc()
             } else {
@@ -533,6 +574,7 @@ function TextEditor(props: TextEditorProps) {
               setEditorDelegate(curFile.id, wysiwygDelegate)
               setDelegate(wysiwygDelegate)
               debounceRefreshToc()
+              focusEditorAfterTypeSwitch(payload, wysiwygDelegate)
             }
             useEditorViewTypeStore.getState().setEditorViewType(curFile.id, payload)
             editorRef.current?.toggleType(payload)
@@ -550,7 +592,15 @@ function TextEditor(props: TextEditorProps) {
       cb.cancel()
       bus.detach('editor_toggle_type', cb)
     }
-  }, [active, curFile, execute, setEditorDelegate, getEditorContent, debounceRefreshToc])
+  }, [
+    active,
+    curFile,
+    execute,
+    setEditorDelegate,
+    getEditorContent,
+    debounceRefreshToc,
+    focusEditorAfterTypeSwitch,
+  ])
 
   useEffect(() => {
     const exportImageHandler = async () => {

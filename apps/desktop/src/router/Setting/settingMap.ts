@@ -1,5 +1,4 @@
 import { changeLng, Langs, locales } from '@/i18n'
-import { currentWebview } from '@/services/windows'
 import i18n from 'i18next'
 import { EditorViewType } from 'rme'
 
@@ -10,19 +9,6 @@ export const getSettingMap = () => {
       iconName: 'ri-equalizer-line',
       desc: {
         i18nKey: 'settings.general.desc',
-      },
-      App: {
-        i18nKey: 'settings.general.app.label',
-        auto_update: {
-          key: 'auto_update',
-          title: {
-            i18nKey: 'settings.general.app.automatic_updates.label',
-          },
-          desc: {
-            i18nKey: 'settings.general.app.automatic_updates.desc',
-          },
-          type: 'switch',
-        },
       },
       'Auto Save': {
         i18nKey: 'settings.general.autosave.label',
@@ -67,39 +53,6 @@ export const getSettingMap = () => {
             changeLng(val)
           },
         },
-      },
-    },
-    display: {
-      i18nKey: 'settings.display.label',
-      iconName: 'ri-window-line',
-      desc: {
-        i18nKey: 'settings.display.desc',
-      },
-      size: {
-        i18nKey: 'settings.display.size.label',
-        zoom: {
-          key: 'webview_zoom',
-          type: 'slider',
-          title: {
-            i18nKey: 'settings.display.size.zoom.label',
-          },
-          desc: {
-            i18nKey: 'settings.display.size.zoom.desc',
-          },
-          step: 0.1,
-          saveToString: true,
-          scope: [0.5, 2],
-          afterWrite: (val: string) => {
-            currentWebview.setZoom(Number(val))
-          },
-        },
-      },
-    },
-    themeStore: {
-      i18nKey: 'settings.themeStore.label',
-      iconName: 'ri-palette-line',
-      desc: {
-        i18nKey: 'settings.themeStore.desc',
       },
     },
     editor: {

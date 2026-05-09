@@ -22,6 +22,7 @@ const SelectSettingItem: React.FC<SettingItemProps<Setting.SelectSettingItem>> =
       <Select
         value={currentValue}
         options={selectOptions}
+        dropdownStyle={{ zIndex: 5000 }}
         onChange={(value) => {
           appSettingService.writeSettingData(item, value)
         }}

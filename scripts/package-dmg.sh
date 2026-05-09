@@ -21,7 +21,7 @@ if [[ -d "$HOME/.cargo/bin" ]]; then
   export PATH="$HOME/.cargo/bin:$PATH"
 fi
 
-echo "Building MarkFlowy DMG for $(uname -m)..."
+echo "Building MarkFlowyPlus DMG for $(uname -m)..."
 
 echo "Rebuilding desktop frontend..."
 rm -rf "$ROOT_DIR/apps/desktop/dist"
@@ -31,7 +31,7 @@ node "$YARN_BIN" workspace @markflowy/desktop tauri build \
   --bundles app dmg \
   --config '{"bundle":{"createUpdaterArtifacts":false}}'
 
-DMG_PATH="$(find "$DMG_DIR" -maxdepth 1 -name 'MarkFlowy_*_*.dmg' -type f -print | sort | tail -n 1)"
+DMG_PATH="$(find "$DMG_DIR" -maxdepth 1 -name 'MarkFlowyPlus_*_*.dmg' -type f -print | sort | tail -n 1)"
 
 if [[ -z "$DMG_PATH" ]]; then
   echo "DMG was not found in: $DMG_DIR"

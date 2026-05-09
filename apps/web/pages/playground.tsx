@@ -27,8 +27,8 @@ const Playground = () => {
   return (
     <>
       <Head>
-        <title>Playground - Markflowy</title>
-        <meta name='description' content='Experiment with the RME editor in Markflowy playground' />
+        <title>Playground - MarkFlowyPlus</title>
+        <meta name='description' content='Experiment with the RME editor in MarkFlowyPlus playground' />
       </Head>
       <Nav
         showSideNav={false}

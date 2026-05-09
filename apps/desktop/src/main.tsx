@@ -1,18 +1,15 @@
 import 'web-streams-polyfill'
-import { darkTheme, lightTheme } from '@markflowy/theme'
 import * as Sentry from '@sentry/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { emit } from '@tauri-apps/api/event'
 import 'antd/dist/antd.css'
 import { HoxRoot } from 'hox'
 import { enableMapSet } from 'immer'
-import { StrictMode, Suspense, useEffect } from 'react'
+import { StrictMode, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import 'remixicon/fonts/remixicon.css'
-import { Spinners } from 'zens'
 import App from './App'
-import { currentWindow } from './services/windows'
+import { installGlobalErrorLogging } from './helper/logger'
 import './atom.css'
 import './normalize.css'
 
@@ -22,55 +19,13 @@ Sentry.init({
 })
 
 enableMapSet()
+installGlobalErrorLogging()
 
 const queryClient = new QueryClient()
 
-const initialThemeMode = window.__MF_INITIAL_THEME_MODE__
-const startupTheme = initialThemeMode === 'dark' || (
-  initialThemeMode !== 'light' && window.matchMedia?.('(prefers-color-scheme: dark)').matches
-)
-  ? darkTheme
-  : lightTheme
-
 const Main = () => {
-  useEffect(() => {
-    const notifyStartupReady = () => {
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => {
-          void emit('markflowy-startup-ready')
-        })
-      })
-    }
-
-    const timer = window.setTimeout(() => {
-      currentWindow.show()
-      currentWindow.setFocus()
-      notifyStartupReady()
-    }, 0)
-
-    return () => {
-      window.clearTimeout(timer)
-    }
-  }, [])
-
   return (
-    <Suspense
-      fallback={
-        <div
-          style={{
-            height: '100vh',
-            width: '100vw',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: startupTheme.styledConstants.bgColor,
-            color: startupTheme.styledConstants.primaryFontColor,
-          }}
-        >
-          <Spinners.BarLoader color={startupTheme.styledConstants.accentColor} width={200} />
-        </div>
-      }
-    >
+    <Suspense fallback={null}>
       <App />
     </Suspense>
   )

@@ -13,7 +13,7 @@ export default function SeoHead({
   children,
   description = 'Modern Markdown editor.',
   image = 'https://www.styled-components.com/atom.png',
-  title = 'MarkFlowy',
+  title = 'MarkFlowyPlus',
   url = '',
 }: React.PropsWithChildren<SeoHeadProps>) {
   return (
@@ -36,7 +36,7 @@ export default function SeoHead({
       <meta property="og:image:height" content="652" />
       <meta property="og:image:width" content="652" />
       <meta property="og:description" content={description} />
-      <meta property="og:site_name" content="MarkFlowy" />
+      <meta property="og:site_name" content="MarkFlowyPlus" />
 
       {children}
 

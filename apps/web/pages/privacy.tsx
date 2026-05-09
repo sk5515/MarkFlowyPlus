@@ -24,7 +24,7 @@ const privacySections: PrivacySection[] = [
     content: [
       {
         type: 'paragraph',
-        text: 'MarkFlowy ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our MarkFlowy application and services.',
+        text: 'MarkFlowyPlus ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our MarkFlowyPlus application and services.',
       },
       {
         type: 'paragraph',
@@ -37,7 +37,7 @@ const privacySections: PrivacySection[] = [
     content: [
       {
         type: 'paragraph',
-        text: 'MarkFlowy is designed with privacy in mind. We do not collect or store:',
+        text: 'MarkFlowyPlus is designed with privacy in mind. We do not collect or store:',
       },
       {
         type: 'list',
@@ -73,7 +73,7 @@ const privacySections: PrivacySection[] = [
     content: [
       {
         type: 'paragraph',
-        text: 'MarkFlowy offers optional AI-powered features that integrate with third-party AI providers:',
+        text: 'MarkFlowyPlus offers optional AI-powered features that integrate with third-party AI providers:',
       },
       {
         type: 'list',
@@ -103,7 +103,7 @@ const privacySections: PrivacySection[] = [
     content: [
       {
         type: 'paragraph',
-        text: 'MarkFlowy is an open-source application. You can inspect our source code at any time to verify our privacy claims:',
+        text: 'MarkFlowyPlus is an open-source application. You can inspect our source code at any time to verify our privacy claims:',
       },
       {
         type: 'list',
@@ -212,7 +212,7 @@ export default function PrivacyPage() {
 
   return (
     <>
-      <SeoHead title='Privacy Policy - MarkFlowy'>
+      <SeoHead title='Privacy Policy - MarkFlowyPlus'>
         <meta name='robots' content='noodp' />
       </SeoHead>
 

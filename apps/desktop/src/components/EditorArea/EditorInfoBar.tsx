@@ -1,16 +1,12 @@
-import useAiChatStore, { getCurrentAISettingData } from '@/extensions/ai/useAiChatStore'
 import bus from '@/helper/eventBus'
 import { getFileObject } from '@/helper/files'
-import { FileResultCode } from '@/helper/filesys'
 import { toggleEditorTypeShortcut } from '@/helper/keyboardShortcut'
-import { addNewMarkdownFileEdit, isEmptyEditor } from '@/services/editor-file'
+import { isEmptyEditor } from '@/services/editor-file'
 import { currentWindow } from '@/services/windows'
 import { getWorkspace, WorkSpace } from '@/services/workspace'
 import { useEditorStateStore, useEditorStore } from '@/stores'
-import useAppSettingStore from '@/stores/useAppSettingStore'
 import useEditorViewTypeStore from '@/stores/useEditorViewTypeStore'
 import useFileTypeConfigStore from '@/stores/useFileTypeConfigStore'
-import useAppTasksStore from '@/stores/useTasksStore'
 import NiceModal from '@ebay/nice-modal-react'
 import { invoke } from '@tauri-apps/api/core'
 import { debounce } from 'lodash'
@@ -19,7 +15,7 @@ import { useTranslation } from 'react-i18next'
 import { EditorViewType } from 'rme'
 import styled from 'styled-components'
 import { Space, toast } from 'zens'
-import { InputConfirmModalProps, MODAL_INFO_ID, MODAL_INPUT_ID } from '../Modal'
+import { MODAL_INFO_ID } from '../Modal'
 import { MfIconButton } from '../ui-v2/Button'
 import { showContextMenu } from '../ui-v2/ContextMenu'
 
@@ -33,13 +29,10 @@ const EMPTY_FILE_NORMAL_INFO: FileNormalInfo = {
 }
 
 export const EditorInfoBar = memo(() => {
-  const { activeId, folderData, getEditorContent } = useEditorStore()
+  const { activeId, folderData } = useEditorStore()
   const [workspace, setWorkspace] = useState<WorkSpace | null>(null)
 
   const { editorViewTypeMap } = useEditorViewTypeStore()
-  const { getPostSummary, getPostTranslate } = useAiChatStore()
-  const { settingData } = useAppSettingStore()
-  const { addAppTask } = useAppTasksStore()
   const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const ref1 = useRef<HTMLDivElement>(null)
@@ -95,115 +88,14 @@ export const EditorInfoBar = memo(() => {
     }
   }, [workspace?.syncMode, getFileNormalInfo])
 
-  const fetchCurFileSummary = useCallback(async () => {
-    const content = getEditorContent(curFile?.id || '')
-    const aiSettingData = getCurrentAISettingData()
-    const res = await addAppTask<ReturnType<typeof getPostSummary>>({
-      title: 'AI: Retrieving article abstract',
-      promise: getPostSummary(content || '', aiSettingData),
-    })
-    addNewMarkdownFileEdit({
-      fileName: 'summary.md',
-      content: `
-# Summary
-
-${res}
-    `,
-    })
-  }, [
-    addAppTask,
-    curFile?.id,
-    getEditorContent,
-    getPostSummary,
-    settingData.extensions_chatgpt_apikey,
-  ])
-
-  const fetchCurFileTranslate = useCallback(
-    async (targetLang: string) => {
-      const content = getEditorContent(curFile?.id || '')
-      const aiSettingData = getCurrentAISettingData()
-
-      const res = await addAppTask({
-        title: 'AI: Translating article',
-        promise: getPostTranslate(content || '', aiSettingData, targetLang),
-      })
-
-      addNewMarkdownFileEdit({
-        fileName: `translate-${targetLang}.md`,
-        content: `${res}`,
-      })
-    },
-    [
-      addAppTask,
-      curFile?.id,
-      getEditorContent,
-      getPostTranslate,
-      settingData.extensions_chatgpt_apikey,
-    ],
-  )
-
-  const convertText = useCallback(
-    async (variant: string) => {
-      const content = getEditorContent(curFile?.id || '')
-      try {
-        const res = await invoke<{ code: FileResultCode; content: string }>('convert_text', {
-          text: content || '',
-          variant,
-        })
-        if (res.code === FileResultCode.Success) {
-          bus.emit('editor_set_content', res.content)
-        } else {
-          toast.error(res.content)
-        }
-      } catch (error) {
-        toast.error(String(error))
-      }
-    },
-    [curFile?.id, getEditorContent],
-  )
-
   const handleMoreAction = useCallback(() => {
     const rect = ref1.current?.getBoundingClientRect()
     if (rect === undefined) return
-
-    const { aiProvider } = useAiChatStore.getState()
 
     showContextMenu({
       x: rect.x,
       y: rect.y + rect.height,
       items: [
-        {
-          label: `AI(${aiProvider})`,
-          value: 'AI',
-          children: [
-            {
-              label: t('action.summary'),
-              value: 'summary',
-              handler: fetchCurFileSummary,
-            },
-            {
-              label: t('action.translate'),
-              value: 'translate',
-              handler: () => {
-                NiceModal.show<any, InputConfirmModalProps>(MODAL_INPUT_ID, {
-                  title: t('action.translate'),
-                  inputProps: {
-                    placeholder: t('placeholder.translate'),
-                  },
-                  onConfirm: (val) => {
-                    if (!val) {
-                      return
-                    }
-                    fetchCurFileTranslate(val)
-                  },
-                })
-              },
-            },
-          ],
-        },
-        {
-          type: 'divider' as const,
-        },
         {
           value: 'export_html',
           label: t('contextmenu.editor_tab.export_html'),
@@ -225,39 +117,9 @@ ${res}
             bus.emit('editor_export_pdf')
           },
         },
-        {
-          type: 'divider' as const,
-        },
-        {
-          label: '简繁转换',
-          value: 'convert_text',
-          children: [
-            {
-              label: '简 -> 繁 (台湾)',
-              value: 'zh-TW',
-              handler: () => convertText('zh-TW'),
-            },
-            {
-              label: '简 -> 繁 (香港)',
-              value: 'zh-HK',
-              handler: () => convertText('zh-HK'),
-            },
-            {
-              label: '繁 -> 简',
-              value: 'zh-Hans',
-              handler: () => convertText('zh-Hans'),
-            },
-          ],
-        },
       ],
     })
-  }, [
-    curFile,
-    t,
-    fetchCurFileSummary,
-    fetchCurFileTranslate,
-    convertText,
-  ])
+  }, [curFile, t])
 
   const handleViewClick = useCallback(() => {
     const rect = ref.current?.getBoundingClientRect()
@@ -294,7 +156,7 @@ ${res}
         return curFileTypeConfig ? curFileTypeConfig?.supportedModes?.includes(item.value) : false
       }),
     })
-  }, [curFile, editorViewTypeMap, t, fetchCurFileSummary, fetchCurFileTranslate])
+  }, [curFile, editorViewTypeMap, t])
 
   const editorViewType = editorViewTypeMap.get(curFile?.id || '') || 'wysiwyg'
 

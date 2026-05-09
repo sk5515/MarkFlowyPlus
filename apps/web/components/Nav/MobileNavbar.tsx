@@ -32,7 +32,7 @@ export default function MobileNavbar({
       )}
       <Logo />
       <Brand> / </Brand>
-      MarkFlowy
+      MarkFlowyPlus
       {children}
       <NavButton onClick={onMobileNavToggle} style={{ position: 'absolute', right: 0 }}>
         <ArrowWrapper $shouldRotate={!isMobileNavFolded}>

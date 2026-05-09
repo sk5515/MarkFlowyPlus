@@ -4,8 +4,10 @@
 )]
 
 mod app;
+mod compat;
 mod fc;
 mod font;
+mod log_file;
 mod menu;
 mod search;
 mod setup;
@@ -23,8 +25,6 @@ use app::{
 use dotenv;
 use lazy_static::lazy_static;
 use tauri::{Manager, Runtime, State};
-use tauri_plugin_window_state::{AppHandleExt, StateFlags};
-use tracing_subscriber;
 
 lazy_static! {
     /// FIXME Haven't found a better way to get the home dir yet, and we will optimize it later.
@@ -52,15 +52,40 @@ pub fn run() {
     #[cfg(target_os = "linux")]
     std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
 
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::fmt()
+        .with_ansi(false)
+        .with_writer(|| log_file::LogFileWriter)
+        .init();
+    std::panic::set_hook(Box::new(|panic_info| {
+        let location = panic_info
+            .location()
+            .map(|location| format!("{}:{}", location.file(), location.line()))
+            .unwrap_or_else(|| "unknown location".to_string());
+        let payload = panic_info
+            .payload()
+            .downcast_ref::<&str>()
+            .copied()
+            .or_else(|| {
+                panic_info
+                    .payload()
+                    .downcast_ref::<String>()
+                    .map(String::as_str)
+            })
+            .unwrap_or("unknown panic payload");
+
+        let _ = log_file::append_app_line("ERROR", "panic", format!("{location} - {payload}"));
+    }));
+    let _ = log_file::append_app_line(
+        "INFO",
+        "startup",
+        format!(
+            "MarkFlowyPlus starting, log file: {}",
+            log_file::log_path().display()
+        ),
+    );
     dotenv::dotenv().ok();
 
     let context = tauri::generate_context!();
-    let window_state_flags = StateFlags::SIZE
-        | StateFlags::POSITION
-        | StateFlags::MAXIMIZED
-        | StateFlags::FULLSCREEN;
-
     tauri::Builder::default()
         .manage(OpenedUrls(Default::default()))
         .plugin(tauri_plugin_http::init())
@@ -71,12 +96,6 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_notification::init())
-        .plugin(
-            tauri_plugin_window_state::Builder::default()
-                .with_state_flags(window_state_flags)
-                .with_denylist(&[setup::STARTUP_SPLASH_LABEL])
-                .build(),
-        )
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_single_instance::init(
             |app_handle: &tauri::AppHandle, args: Vec<String>, cwd: String| {
@@ -152,6 +171,8 @@ pub fn run() {
             file_watcher::cmd::stop_all_file_watchers,
             app::clipboard::get_clipboard_html,
             app::clipboard::get_clipboard_text,
+            log_file::write_frontend_log,
+            log_file::get_log_file_path,
         ])
         .setup(|app: &mut tauri::App| {
             let home_dir_path = app.path().home_dir().expect("failed to get home dir");
@@ -196,9 +217,6 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(move |window, event| {
-            let app = window.app_handle();
-            let _ = app.save_window_state(window_state_flags);
-
             if let tauri::WindowEvent::Destroyed = event {
                 let window_label = window.label();
                 if let Ok(mut instances) = WINDOW_INSTANCES.lock() {

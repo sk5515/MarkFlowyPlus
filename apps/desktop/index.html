@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/src/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MarkFlowy</title>
+    <title>MarkFlowyPlus</title>
     <style>
       :root,
       html,
@@ -57,19 +57,19 @@
   <body class="dark">
     <div id="root"></div>
     <script>
-      console.log('%cMarkFlowy Developer Console', 'color:#016ab3; font-size:40px; font-weight:bold;')
+      console.log('%cMarkFlowyPlus Developer Console', 'color:#016ab3; font-size:40px; font-weight:bold;')
       window.addEventListener('error', function (event) {
         var root = document.getElementById('root')
         if (!root || root.children.length) return
         root.innerHTML = '<pre style="white-space:pre-wrap;padding:16px;color:#ff7a7a;background:#1f1f1f;font:13px/1.5 monospace;">' +
-          'MarkFlowy failed to start:\\n' + String(event.message || event.error || 'Unknown error') +
+          'MarkFlowyPlus failed to start:\\n' + String(event.message || event.error || 'Unknown error') +
           '</pre>'
       })
       window.addEventListener('unhandledrejection', function (event) {
         var root = document.getElementById('root')
         if (!root || root.children.length) return
         root.innerHTML = '<pre style="white-space:pre-wrap;padding:16px;color:#ff7a7a;background:#1f1f1f;font:13px/1.5 monospace;">' +
-          'MarkFlowy failed to start:\\n' + String(event.reason && (event.reason.stack || event.reason.message) || event.reason || 'Unhandled promise rejection') +
+          'MarkFlowyPlus failed to start:\\n' + String(event.reason && (event.reason.stack || event.reason.message) || event.reason || 'Unhandled promise rejection') +
           '</pre>'
       })
     </script>

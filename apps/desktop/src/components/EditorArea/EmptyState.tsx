@@ -31,7 +31,7 @@ export const EmptyState = memo(() => {
     <Container className='w-full h-full'>
       <div className='empty-state-content'>
         <div className='app-title'>
-          <p>MarkFlowy</p>
+          <p>MarkFlowyPlus</p>
         </div>
 
         <div className='nav-section'>

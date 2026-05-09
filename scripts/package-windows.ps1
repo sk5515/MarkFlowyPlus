@@ -14,7 +14,7 @@ $TauriDir = Join-Path $DesktopDir "src-tauri"
 $TargetDir = Join-Path $Root "target"
 $ReleaseExe = Join-Path $TargetDir "release\markflowy.exe"
 $ManualDir = Join-Path $TargetDir "manual-installer"
-$ManualNsi = Join-Path $ManualDir "MarkFlowy.nsi"
+$ManualNsi = Join-Path $ManualDir "MarkFlowyPlus.nsi"
 
 function Add-PathEntry {
   param([string]$Path)

@@ -43,6 +43,7 @@ const FontListSelectSettingItem: React.FC<SettingItemProps<Setting.FontListSelec
         value={curValue}
         onChange={handleChange}
         options={options}
+        dropdownStyle={{ zIndex: 5000 }}
         showSearch={{ optionFilterProp: 'label', onSearch: handleSearch }}
         style={{ width: '220px' }}
         placeholder="Select a font"

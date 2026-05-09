@@ -7,7 +7,6 @@ import { appSettingStoreSetup } from '@/services/app-setting'
 import useAppInfoStore from '@/stores/useAppInfoStore'
 import NiceModal from '@ebay/nice-modal-react'
 import { invoke } from '@tauri-apps/api/core'
-import { openUrl } from '@tauri-apps/plugin-opener'
 import type { Update } from '@tauri-apps/plugin-updater'
 import { check } from '@tauri-apps/plugin-updater'
 import classNames from 'classnames'
@@ -19,7 +18,6 @@ import SettingGroup from './component/SettingGroup'
 import { ImageSetting } from './ImageSetting'
 import { KeyboardTable } from './KeyboardTable'
 import { Container } from './styles'
-import { ThemeStore } from './ThemeStore'
 
 export interface DialogTitleProps {
   children?: ReactNode
@@ -85,10 +83,6 @@ function Setting() {
       return <KeyboardTable />
     }
 
-    if (curGroupKey === 'themeStore') {
-      return <ThemeStore />
-    }
-
     if (curGroupKey === 'image') {
       return <ImageSetting />
     }
@@ -101,20 +95,7 @@ function Setting() {
     })
   }
 
-  const handleOpenThemeStoreFile = () => {
-    openUrl('https://github.com/drl990114/MarkFlowy')
-  }
-
   const renderAction = () => {
-    if (curGroupKey === 'themeStore') {
-      return (
-        <Button size='small' btnType='primary' onClick={handleOpenThemeStoreFile}>
-          <i className='ri-github-fill' style={{ marginRight: '8px' }} />
-          {t('settings.themeStore.submit_theme')}
-        </Button>
-      )
-    }
-
     if (curGroupKey === 'general') {
       return (
         <Button size='small' btnType='primary' onClick={handleResetConfiguration}>

@@ -12,7 +12,7 @@
   },
   "mock": {
     "intro": {
-      "title": "Welcome to MarkFlowy!",
+      "title": "Welcome to MarkFlowyPlus!",
       "ai_label": "AI-Powered:",
       "ai_desc": "Built-in Copilot, translation, summary, and DeepSeek/ChatGPT and other mainstream models support.",
       "lightweight_label": "Lightweight:",
@@ -39,8 +39,8 @@
   },
   "home": {
     "hero": {
-      "title": "MarkFlowy",
-      "subtitle": "MarkFlowy is committed to efficient and comfortable Markdown creation,\nThe next generation professional editor driven by AI.",
+      "title": "MarkFlowyPlus",
+      "subtitle": "MarkFlowyPlus is committed to efficient and comfortable Markdown creation,\nThe next generation professional editor driven by AI.",
       "description": "",
       "download": "Download Now"
     },
@@ -60,7 +60,7 @@
     },
     "contributors": {
       "title": "Built by Many Contributors",
-      "description": "Thanks to all the developers who have contributed to MarkFlowy"
+      "description": "Thanks to all the developers who have contributed to MarkFlowyPlus"
     }
   },
   "navigation": {

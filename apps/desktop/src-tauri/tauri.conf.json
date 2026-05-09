@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "MarkFlowy",
+  "productName": "MarkFlowyPlus",
   "version": "0.55.4",
-  "identifier": "com.drl990114.markflowy",
+  "identifier": "com.drl990114.markflowyplus",
   "build": {
     "beforeDevCommand": "yarn dev",
     "devUrl": "http://localhost:3000",

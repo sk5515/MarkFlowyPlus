@@ -1,13 +1,15 @@
-use crate::WINDOW_INSTANCES;
+use crate::{compat, WINDOW_INSTANCES};
 use serde_json;
-use std::{path::PathBuf, time::Duration};
-use tauri::{command, utils::config::Color, AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
+use std::path::PathBuf;
+use tauri::{
+    command,
+    utils::config::Color,
+    webview::PageLoadEvent,
+    AppHandle, Manager, WebviewUrl, WebviewWindowBuilder,
+};
 use uuid;
 
 use super::conf::AppConf;
-
-#[cfg(target_os = "macos")]
-use tauri::TitleBarStyle;
 
 /// 获取所有窗口实例信息
 #[command]
@@ -80,7 +82,7 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
         // 如果找到存在的窗口，聚焦并返回
         if let Some(label) = existing_window_label {
             if let Some(existing_window) = _app.get_webview_window(&label) {
-                existing_window.set_focus().map_err(|e| e.to_string())?;
+                let _ = existing_window.show();
                 return Ok(label);
             }
         }
@@ -110,35 +112,33 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
     println!("escaped_urls:{}", escaped_urls);
     println!("path:{}", path.as_ref().unwrap());
     tauri::async_runtime::spawn(async move {
-        let mut new_win =
+        let new_win =
             WebviewWindowBuilder::new(&_app, window_label, WebviewUrl::App("index.html".into()))
+                .initialization_script(compat::webview_init_script())
                 .initialization_script(&format!(
                     "window.__MF_INITIAL_THEME_MODE__ = '{}'; document.documentElement.dataset.themeMode = '{}'; document.documentElement.style.colorScheme = '{}'; document.body && (document.body.style.colorScheme = '{}');",
                     theme_mode, theme_mode, theme_mode, theme_mode
                 ))
                 .initialization_script(&format!("window.openedUrls = {escaped_urls}"))
                 .initialization_script(&format!("console.log('window.openedUrl:{}')", escaped_urls))
-                .title("MarkFlowy")
+                .title("MarkFlowyPlus")
                 .resizable(true)
+                .decorations(true)
                 .fullscreen(false)
                 .theme(Some(theme))
                 .background_color(window_bg_color)
                 .visible(false)
+                .on_page_load(|window, payload| {
+                    if matches!(payload.event(), PageLoadEvent::Finished) {
+                        let _ = window.show();
+                    }
+                })
                 .disable_drag_drop_handler()
                 .inner_size(1200.0, 800.0)
                 .min_inner_size(400.0, 400.0);
 
-        #[cfg(target_os = "macos")]
-        {
-            new_win = new_win.title_bar_style(TitleBarStyle::Transparent);
-        }
-
-        new_win = new_win.decorations(false);
-
         let window = new_win.build().unwrap();
-        tokio::time::sleep(Duration::from_millis(800)).await;
-        let _ = window.show();
-        let _ = window.set_focus();
+        let _ = window;
     });
 
     Ok(window_label_clone)

@@ -1,5 +1,6 @@
 
 import { EVENT } from '@/constants'
+import { logger } from '@/helper/logger'
 import appSettingService from '@/services/app-setting'
 import { useCommandStore } from '@/stores'
 import useThemeStore from '@/stores/useThemeStore'
@@ -48,6 +49,7 @@ export const CenterMenu = memo(() => {
           label: t('settings.label'),
           value: 'settings',
           handler: () => {
+            logger.info('Setting menu item clicked')
             useCommandStore.getState().execute(EVENT.app_openSetting)
             // FIXME tauri 2.0 bug in windows https://github.com/tauri-apps/plugins-workspace/issues/656
             // invoke('open_conf_window')

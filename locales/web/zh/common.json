@@ -12,7 +12,7 @@
   },
   "mock": {
     "intro": {
-      "title": "欢迎使用 MarkFlowy！",
+      "title": "欢迎使用 MarkFlowyPlus！",
       "ai_label": "AI 驱动：",
       "ai_desc": "内置 Copilot、翻译、摘要功能，并支持 DeepSeek/ChatGPT 等多种主流模型。",
       "lightweight_label": "轻量化：",
@@ -39,8 +39,8 @@
   },
   "home": {
     "hero": {
-      "title": "MarkFlowy",
-      "subtitle": "MarkFlowy 致力于高效舒适的 Markdown 创作，\nAI 驱动的下一代专业编辑器。",
+      "title": "MarkFlowyPlus",
+      "subtitle": "MarkFlowyPlus 致力于高效舒适的 Markdown 创作，\nAI 驱动的下一代专业编辑器。",
       "description": "",
       "download": "立即下载"
     },
@@ -60,7 +60,7 @@
     },
     "contributors": {
       "title": "由众多贡献者共同打造",
-      "description": "感谢所有为 MarkFlowy 做出贡献的开发者"
+      "description": "感谢所有为 MarkFlowyPlus 做出贡献的开发者"
     }
   },
   "navigation": {

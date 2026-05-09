@@ -71,7 +71,7 @@ pub_struct!(AppConf {
 
 pub const APP_CONF_PATH: &str = "markflowy.conf.json";
 pub const STORE_KEY: &str = "app_config_v3";
-const DEFAULT_THEME: &str = "MarkFlowy Dark";
+const DEFAULT_THEME: &str = "MarkFlowyPlus Dark";
 
 fn create_store(app: &AppHandle) -> Result<std::sync::Arc<Store<tauri::Wry>>, String> {
     let store_path = "markflowy_store.bin";

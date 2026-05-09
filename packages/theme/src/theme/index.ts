@@ -432,13 +432,13 @@ const styledNordTheme = {
 }
 
 export const lightTheme: MfTheme = {
-  name: 'MarkFlowy Light',
+  name: 'MarkFlowyPlus Light',
   mode: 'light',
   styledConstants: styledLightTheme,
 }
 
 export const darkTheme: MfTheme = {
-  name: 'MarkFlowy Dark',
+  name: 'MarkFlowyPlus Dark',
   mode: 'dark',
   styledConstants: styledDarkTheme,
 }

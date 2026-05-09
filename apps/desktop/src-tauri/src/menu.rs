@@ -1,34 +1,8 @@
-use crate::app::conf::AppConf;
-use crate::app::keybindings::Keybindings;
 use crate::app::window_manager::get_focused_window;
-use tauri::menu::{
-    CheckMenuItem, CheckMenuItemBuilder, Menu, MenuEvent, MenuItem, MenuItemBuilder,
-    PredefinedMenuItem, Submenu,
-};
-use tauri::{App, AppHandle, Emitter, Manager};
+use tauri::menu::{Menu, MenuEvent, MenuItemBuilder, PredefinedMenuItem, Submenu};
+use tauri::{App, AppHandle, Emitter};
 
 pub fn generate_menu(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
-    let app_conf = AppConf::read_with_app(&app.handle());
-    let _keyboard_infos = Keybindings::read();
-
-    // let is_dark = app_conf.clone().theme_check("dark");
-
-    // let theme_menu_light_item = CheckMenuItemBuilder::new("Light")
-    //     .checked(!is_dark)
-    //     .id("theme_light")
-    //     .build(app);
-    // let theme_menu_dark_item = CheckMenuItemBuilder::new("Dark")
-    //     .checked(is_dark)
-    //     .id("theme_dark")
-    //     .build(app);
-
-    // let theme_submenu = &Submenu::with_items(
-    //     app,
-    //     "Theme",
-    //     true,
-    //     &[&theme_menu_light_item, &theme_menu_dark_item],
-    // )?;
-
     let menu_handler = move |app: &AppHandle, event: MenuEvent| {
         let menu_id = event.id().as_ref();
 
@@ -43,11 +17,6 @@ pub fn generate_menu(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
 
             // 处理特定的菜单事件
             match menu_id {
-                "About" => {
-                    app.emit_to(&focused_window_label, "app_about", {})
-                        .map_err(|err| println!("{:?}", err))
-                        .ok();
-                }
                 "Settings" => {
                     app.emit_to(&focused_window_label, "app_openSetting", {})
                         .map_err(|err| println!("{:?}", err))
@@ -68,12 +37,9 @@ pub fn generate_menu(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         &[
             &Submenu::with_items(
                 app,
-                "MarkFlowy",
+                "MarkFlowyPlus",
                 true,
                 &[
-                    &MenuItemBuilder::new("About MarkFlowy")
-                        .id("About")
-                        .build(app)?,
                     &MenuItemBuilder::new("Settings").id("Settings").build(app)?,
                     &PredefinedMenuItem::quit(app, Some("Quit"))?,
                 ],
