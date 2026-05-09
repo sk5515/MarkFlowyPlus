@@ -4,7 +4,6 @@ import { useEffect, useState, type MouseEvent } from 'react'
 import { EditorCount } from '../StatusBar/EditorCount'
 import { LayoutLeftBtn, LayoutRightBtn } from '../StatusBar/LayoutBtn'
 import { CenterMenu } from '../StatusBar/SettingBtn'
-import { WorkspaceBtn } from '../StatusBar/WorkspaceBtn'
 import {
   CenterDragRegion,
   Container,
@@ -51,7 +50,6 @@ export default function TitleBar() {
         <CenterMenu />
         <LayoutLeftBtn />
         <LayoutRightBtn />
-        <WorkspaceBtn />
       </LeftContainer>
 
       <CenterDragRegion onMouseDown={startDrag} onDoubleClick={toggleMaximize} />

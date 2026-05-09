@@ -2,11 +2,11 @@ import styled from 'styled-components'
 
 export const Container = styled.div`
   flex: 0 0 auto;
-  height: 34px;
+  height: 28px;
   display: flex;
   align-items: center;
   gap: ${(props) => props.theme.spaceSm};
-  padding-left: 8px;
+  padding-left: 6px;
   background: ${(props) => props.theme.statusBarBgColor};
   border-bottom: 1px solid ${(props) => props.theme.borderColor};
   color: ${(props) => props.theme.primaryFontColor};
@@ -19,9 +19,9 @@ export const LeftContainer = styled.div<{ $isMacOS?: boolean }>`
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: ${(props) => props.theme.spaceSm};
+  gap: 4px;
   height: 100%;
-  padding-left: ${(props) => props.$isMacOS ? '74px' : '0'};
+  padding-left: ${(props) => props.$isMacOS ? '70px' : '0'};
 `
 
 export const CenterDragRegion = styled.div`

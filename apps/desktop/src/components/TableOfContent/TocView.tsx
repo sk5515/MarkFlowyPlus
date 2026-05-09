@@ -2,6 +2,7 @@ import { Toc } from '@/components/TableOfContent'
 import { getHeadingValue } from '@/helper/string'
 import { useCommandStore, useEditorStore } from '@/stores'
 import useEditorViewTypeStore from '@/stores/useEditorViewTypeStore'
+import { EditorView as CodeMirrorEditorView } from '@codemirror/view'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
 import { TextSelection } from 'prosemirror-state'
 import type { EditorView } from 'prosemirror-view'
@@ -25,6 +26,49 @@ type SourceHeadingInfo = {
   depth: number
   value: string
   id: string
+}
+
+const HEADING_SCROLL_TOP_OFFSET = 16
+
+const getEditorScrollElement = () => {
+  return document.querySelector('#editor-panel') as HTMLElement | null
+}
+
+const getScrollableAncestor = (element: HTMLElement | null) => {
+  let current = element?.parentElement ?? null
+
+  while (current && current !== document.body) {
+    const style = window.getComputedStyle(current)
+    const canScrollY = /(auto|scroll)/.test(style.overflowY)
+
+    if (canScrollY && current.scrollHeight > current.clientHeight) {
+      return current
+    }
+
+    current = current.parentElement
+  }
+
+  return getEditorScrollElement()
+}
+
+const resolveHeadingDom = (editorView: EditorView, headingPos: number) => {
+  const headingDom = editorView.nodeDOM(headingPos)
+  if (headingDom instanceof HTMLElement) {
+    if (headingDom.matches('h1,h2,h3,h4,h5,h6')) {
+      return headingDom
+    }
+
+    const nestedHeading = headingDom.querySelector('h1,h2,h3,h4,h5,h6')
+    if (nestedHeading instanceof HTMLElement) {
+      return nestedHeading
+    }
+  }
+
+  const domAtPos = editorView.domAtPos(headingPos + 1).node
+  const element =
+    domAtPos instanceof HTMLElement ? domAtPos : domAtPos.parentElement
+
+  return element?.closest('h1,h2,h3,h4,h5,h6') as HTMLElement | null
 }
 
 const getAllHeadings = (doc: ProseMirrorNode): HeadingInfo[] => {
@@ -52,32 +96,40 @@ const jumpToHeading = (
   headingPos: number,
   scrollEl?: HTMLElement | null,
 ) => {
+  const targetScrollEl = scrollEl ?? getEditorScrollElement()
   const { state, dispatch } = editorView
 
   const tr = state.tr
   const selection = TextSelection.create(tr.doc, headingPos + 1)
   tr.setSelection(selection)
+  tr.scrollIntoView()
 
-  dispatch(tr.scrollIntoView())
+  dispatch(tr)
 
   editorView.focus()
 
-  const { from } = editorView.state.selection
-  const coords = editorView.coordsAtPos(from)
+  requestAnimationFrame(() => {
+    const { from } = editorView.state.selection
+    const headingDom = resolveHeadingDom(editorView, headingPos)
+    const resolvedScrollEl = getScrollableAncestor(headingDom)
+    const coords = headingDom?.getBoundingClientRect() ?? editorView.coordsAtPos(from)
+    const scrollTarget = resolvedScrollEl ?? targetScrollEl
 
-  if (scrollEl) {
-    const containerTop = scrollEl.getBoundingClientRect().top
-    const targetTop = coords.top - containerTop + scrollEl.scrollTop - 100
-    scrollEl.scrollTo({
-      top: targetTop,
+    if (scrollTarget) {
+      const containerTop = scrollTarget.getBoundingClientRect().top
+      const targetTop =
+        coords.top - containerTop + scrollTarget.scrollTop - HEADING_SCROLL_TOP_OFFSET
+      scrollTarget.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: 'smooth',
+      })
+      return
+    }
+
+    window.scrollTo({
+      top: Math.max(0, coords.top - HEADING_SCROLL_TOP_OFFSET),
       behavior: 'smooth',
     })
-    return
-  }
-
-  window.scrollTo({
-    top: coords.top - 100, // 偏移 100px，避免被固定导航遮挡
-    behavior: 'smooth',
   })
 }
 
@@ -223,12 +275,28 @@ export const TocView = ({ variant = 'sidebar' }: TocViewProps) => {
                 id: heading.id,
                 htmlNode: null,
                 onClick: () => {
+                  const scrollEl = codemirrorView.cm.scrollDOM
                   codemirrorView.cm.dispatch({
                     selection: {
                       anchor: heading.pos,
                       head: heading.pos,
                     },
-                    scrollIntoView: true,
+                    effects: CodeMirrorEditorView.scrollIntoView(heading.pos, {
+                      y: 'start',
+                      yMargin: HEADING_SCROLL_TOP_OFFSET,
+                    }),
+                  })
+                  requestAnimationFrame(() => {
+                    const coords = codemirrorView.cm.coordsAtPos(heading.pos)
+                    if (!coords) return
+
+                    const containerTop = scrollEl.getBoundingClientRect().top
+                    const targetTop =
+                      coords.top - containerTop + scrollEl.scrollTop - HEADING_SCROLL_TOP_OFFSET
+                    scrollEl.scrollTo({
+                      top: Math.max(0, targetTop),
+                      behavior: 'smooth',
+                    })
                   })
                   codemirrorView.cm.focus()
                 },
@@ -278,7 +346,7 @@ export const TocView = ({ variant = 'sidebar' }: TocViewProps) => {
   }, [])
 
   useEffect(() => {
-    const scrollEl = document.querySelector('#editor-panel') as HTMLElement | null
+    const scrollEl = getEditorScrollElement()
     if (!scrollEl) return
 
     wysiwygScrollElRef.current = scrollEl
@@ -312,8 +380,8 @@ export const TocView = ({ variant = 'sidebar' }: TocViewProps) => {
     }
   }, [])
 
-  const containerEl = document.querySelector('#editor-panel') as HTMLElement
-  const scrollEl = document.querySelector('#editor-panel') as HTMLElement
+  const containerEl = getEditorScrollElement() as HTMLElement
+  const scrollEl = getEditorScrollElement() as HTMLElement
 
   return (
     <TocViewContainer variant={variant}>

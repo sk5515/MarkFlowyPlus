@@ -144,7 +144,8 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
         {
             new_win = new_win
                 .title_bar_style(TitleBarStyle::Overlay)
-                .traffic_light_position(LogicalPosition::new(14.0, 11.0));
+                .hidden_title(true)
+                .traffic_light_position(LogicalPosition::new(12.0, 8.0));
         }
 
         let window = new_win.build().unwrap();

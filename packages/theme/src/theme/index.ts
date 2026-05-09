@@ -431,6 +431,58 @@ const styledNordTheme = {
   scrollbarTrackColor: '#2e3440',
 }
 
+// VS Code Dark Theme
+const styledVSCodeDarkTheme = {
+  ...common,
+
+  // font
+  primaryFontColor: '#cccccc',
+  disabledFontColor: '#6a6a6a',
+  unselectedFontColor: '#858585',
+  labelFontColor: '#969696',
+
+  accentColor: '#007acc',
+  accentColorFocused: '#04395e',
+  borderColor: '#2b2b2b',
+  borderColorFocused: '#007acc',
+  bgColor: '#1e1e1e',
+  bgColorSecondary: '#252526',
+  hoverColor: '#2a2d2e',
+  warnColor: '#cca700',
+  dangerColor: '#f14c4c',
+  tipsBgColor: '#252526',
+  successColor: '#89d185',
+  boxShadowColor: 'rgba(0, 0, 0, 0.35)',
+
+  // app
+  titleBarBgColor: '#3c3c3c',
+  titleBarDefaultHoverColor: '#4a4a4a',
+  editorTabBgColor: '#2d2d2d',
+  editorTabActiveBgColor: '#1e1e1e',
+  editorToolbarBgColor: '#252526',
+  fileTreeIndentLineColor: '#333333',
+  fileTreeSelectedBgColor: '#37373d',
+  sideBarHeaderBgColor: '#252526',
+  sideBarBgColor: '#252526',
+  statusBarBgColor: '#007acc',
+  rightBarBgColor: '#252526',
+  rightBarHeaderBgColor: '#252526',
+
+  tocbarProgressBgColor: '#252526',
+  tocbarProgressActiveBgColor: '#007acc',
+
+  // components
+  buttonBgColor: '#2d2d2d',
+  tooltipBgColor: '#3c3c3c',
+  dialogBgColor: '#1e1e1e',
+  dialogBackdropColor: '#00000099',
+  contextMenuBgColor: '#252526',
+  contextMenuBgColorHover: '#094771',
+
+  scrollbarThumbColor: '#424242',
+  scrollbarTrackColor: '#1e1e1e',
+}
+
 export const lightTheme: MfTheme = {
   name: 'MarkFlowyPlus Light',
   mode: 'light',
@@ -473,6 +525,12 @@ export const nordTheme: MfTheme = {
   styledConstants: styledNordTheme,
 }
 
+export const vsCodeDarkTheme: MfTheme = {
+  name: 'VS Code Dark',
+  mode: 'dark',
+  styledConstants: styledVSCodeDarkTheme,
+}
+
 // 所有内置主题列表
 export const builtInThemes: MfTheme[] = [
   lightTheme,
@@ -482,4 +540,5 @@ export const builtInThemes: MfTheme[] = [
   gitbookTheme,
   sepiaTheme,
   nordTheme,
+  vsCodeDarkTheme,
 ]

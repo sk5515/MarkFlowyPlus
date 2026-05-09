@@ -238,7 +238,10 @@ export const Toc = forwardRef<TocRef, TocProps>((props, ref) => {
     ) => {
       event.preventDefault();
       const elemTopOffset = (h.cachedOffsetTop || 0) - (container?.offsetTop || 0);
-      scroll?.scrollTo(0, elemTopOffset!);
+      scroll?.scrollTo({
+        top: Math.max(0, elemTopOffset - 16),
+        behavior: 'smooth',
+      });
 
       setActiveNodeState(h);
       setActiveParentsState(buildActiveParents(h));

@@ -46,7 +46,7 @@ const Container = styled.div<{ active: boolean }>`
   align-items: center;
   cursor: pointer;
   transition: background-color 0.3s ease-in-out;
-  color: ${(props) => props.active ? props.theme.accentColor : 'inherit'};
+  color: inherit;
 
   &:hover {
     background-color: ${(props) => props.theme.hoverColor};
