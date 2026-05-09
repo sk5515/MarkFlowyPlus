@@ -127,6 +127,7 @@ pub fn init(app_handle: AppHandle, opened_urls: String) -> Result<(), Box<dyn st
     ))
     .title("MarkFlowy")
     .resizable(true)
+    .decorations(false)
     .fullscreen(false)
     .theme(Some(theme))
     .background_color(window_bg_color)

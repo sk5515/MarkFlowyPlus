@@ -39,6 +39,8 @@ const Container = styled.div`
   display: flex;
   align-items: center;
   color: ${({ theme }) => theme.labelFontColor};
+  min-width: 0;
+  white-space: nowrap;
 `
 
 const TaskIcon = styled.span`
@@ -48,4 +50,6 @@ const TaskIcon = styled.span`
 
 const Title = styled.span`
   margin-right: ${({ theme }) => theme.spaceXs};
+  overflow: hidden;
+  text-overflow: ellipsis;
 `

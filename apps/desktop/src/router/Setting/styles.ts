@@ -35,6 +35,12 @@ export const Container = styled.div`
     padding-right: 1rem;
   }
 
+  #sidebar .sidebar-title svg {
+    width: 58px;
+    height: 58px;
+    flex: 0 0 auto;
+  }
+
   #sidebar > * {
     padding-right: 1rem;
   }

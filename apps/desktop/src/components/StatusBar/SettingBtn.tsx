@@ -1,10 +1,8 @@
 
 import { EVENT } from '@/constants'
 import appSettingService from '@/services/app-setting'
-import { currentWindow } from '@/services/windows'
 import { useCommandStore } from '@/stores'
 import useThemeStore from '@/stores/useThemeStore'
-import { emitTo } from '@tauri-apps/api/event'
 import { memo, type MouseEvent, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -42,13 +40,6 @@ export const CenterMenu = memo(() => {
     showContextMenu({
       items: [
         {
-          label: t('about.label'),
-          value: 'about',
-          handler: () => {
-            emitTo(currentWindow.label, EVENT.app_about)
-          },
-        },
-        {
           label: t('view.theme.label'),
           value: 'theme',
           children: themeMenu,
@@ -64,7 +55,7 @@ export const CenterMenu = memo(() => {
         },
       ],
       x: rect[0]?.left || 12,
-      y: rect[0]?.top - 4 || 0,
+      y: rect[0]?.bottom + 4 || 0,
     })
   }
 

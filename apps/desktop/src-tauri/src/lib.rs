@@ -59,7 +59,6 @@ pub fn run() {
     let window_state_flags = StateFlags::SIZE
         | StateFlags::POSITION
         | StateFlags::MAXIMIZED
-        | StateFlags::DECORATIONS
         | StateFlags::FULLSCREEN;
 
     tauri::Builder::default()

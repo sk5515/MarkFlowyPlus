@@ -83,7 +83,7 @@ export const EditorCount = () => {
       trigger='click'
       open={popoverVisible}
       onOpenChange={setPopoverVisible}
-      placement='topRight'
+      placement='bottomRight'
     >
       <Container>
         <span style={{ opacity: 0.8, cursor: 'pointer' }}>{displayParts.join(' ')}</span>

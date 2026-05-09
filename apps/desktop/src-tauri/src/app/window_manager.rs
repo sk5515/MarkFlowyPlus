@@ -133,10 +133,7 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
             new_win = new_win.title_bar_style(TitleBarStyle::Transparent);
         }
 
-        // #[cfg(not(target_os = "macos"))]
-        // {
-        //     new_win = new_win.decorations(false);
-        // }
+        new_win = new_win.decorations(false);
 
         let window = new_win.build().unwrap();
         tokio::time::sleep(Duration::from_millis(800)).await;

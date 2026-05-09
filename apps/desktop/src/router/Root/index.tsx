@@ -2,7 +2,7 @@ import { AppInfoDialog, SideBar } from '@/components'
 import EditorArea from '@/components/EditorArea'
 import { PageLayout } from '@/components/Layout'
 import RightBar from '@/components/SideBar/RightBar'
-import StatusBar from '@/components/StatusBar'
+import TitleBar from '@/components/TitleBar'
 import { WorkspaceDialog } from '@/components/WorkspaceDialog'
 import { useRefreshAIProvidersModels } from '@/extensions/ai/useAiChatStore'
 import { BookMarkDialog } from '@/extensions/bookmarks/BookMarkDialog'
@@ -81,8 +81,12 @@ function Root() {
 
   return (
     <PageLayout>
-      {/* <TitleBar /> */}
-      <Group defaultLayout={defaultLayout} onLayoutChange={onLayoutChanged}>
+      <TitleBar />
+      <Group
+        defaultLayout={defaultLayout}
+        onLayoutChange={onLayoutChanged}
+        style={{ flex: 1, minHeight: 0 }}
+      >
         <Panel
           id='root-left'
           collapsible
@@ -109,8 +113,6 @@ function Root() {
           <RightBar />
         </Panel>
       </Group>
-      <StatusBar />
-
       {/* global dialogs */}
       <AppInfoDialog />
       <BookMarkDialog />

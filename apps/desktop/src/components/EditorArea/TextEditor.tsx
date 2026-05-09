@@ -125,7 +125,11 @@ function TextEditor(props: TextEditorProps) {
     const codeBlock = wrapper.querySelector('.cm-editor') as HTMLElement | null
     const wrapperRect = wrapper.getBoundingClientRect()
     const contentStart = codeBlock?.getBoundingClientRect().left || wrapperRect.left + 40
-    const availableWidth = Math.max(120, Math.floor(panelRect.right - contentStart))
+    const editorInlineGap = 32
+    const availableWidth = Math.max(
+      120,
+      Math.floor(panelRect.right - contentStart - editorInlineGap),
+    )
 
     wrapper.style.setProperty('--editor-code-block-max-width', `${availableWidth}px`)
   }, [])

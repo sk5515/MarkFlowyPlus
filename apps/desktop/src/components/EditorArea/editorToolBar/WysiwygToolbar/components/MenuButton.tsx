@@ -1,11 +1,10 @@
 import { MfIconLabelButton } from '@/components/ui-v2/Button/icon-label-button'
-import useBookMarksStore from '@/extensions/bookmarks/useBookMarksStore'
 import bus from '@/helper/eventBus'
 import { getFileObject } from '@/helper/files'
 import { FileResultCode } from '@/helper/filesys'
 import { toggleEditorTypeShortcut } from '@/helper/keyboardShortcut'
 import { currentWindow } from '@/services/windows'
-import { useCommandStore, useEditorStateStore, useEditorStore } from '@/stores'
+import { useEditorStateStore, useEditorStore } from '@/stores'
 import useEditorViewTypeStore from '@/stores/useEditorViewTypeStore'
 import useFileTypeConfigStore from '@/stores/useFileTypeConfigStore'
 import NiceModal from '@ebay/nice-modal-react'
@@ -30,7 +29,6 @@ const EMPTY_FILE_NORMAL_INFO: FileNormalInfo = {
 
 export const MenuButton = memo(() => {
   const { activeId, getEditorContent } = useEditorStore()
-  const { execute } = useCommandStore()
   const { editorViewTypeMap } = useEditorViewTypeStore()
   const { t } = useTranslation()
   const ref = useRef<any>(null)
@@ -110,8 +108,6 @@ export const MenuButton = memo(() => {
 
     const { getFileTypeConfigById } = useFileTypeConfigStore.getState()
     const curFileTypeConfig = getFileTypeConfigById(curFile?.id || '')
-    const { findMark } = useBookMarksStore.getState()
-    const curBookMark = findMark(curFile?.path || '')
 
     showContextMenu({
       x: rect.x,
@@ -175,21 +171,6 @@ export const MenuButton = memo(() => {
           type: 'divider' as const,
         },
         {
-          label: t('action.bookmark'),
-          value: 'BookMark',
-          checked: curBookMark !== undefined,
-          handler: () => {
-            if (curBookMark) {
-              execute('edit_bookmark_dialog', curBookMark)
-            } else {
-              execute('open_bookmark_dialog', curFile)
-            }
-          },
-        },
-        {
-          type: 'divider' as const,
-        },
-        {
           value: 'export_html',
           label: t('contextmenu.editor_tab.export_html'),
           handler: () => {
@@ -236,7 +217,7 @@ export const MenuButton = memo(() => {
         },
       ],
     })
-  }, [curFile, editorViewType, t, execute, convertText, fileNormalInfo])
+  }, [curFile, editorViewType, t, convertText, fileNormalInfo])
 
   if (!curFile) return null
 

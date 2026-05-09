@@ -1,8 +1,7 @@
-import useBookMarksStore from '@/extensions/bookmarks/useBookMarksStore'
 import bus from '@/helper/eventBus'
 import { getFileObject } from '@/helper/files'
 import { FileResultCode } from '@/helper/filesys'
-import { useCommandStore, useEditorStore } from '@/stores'
+import { useEditorStore } from '@/stores'
 import { invoke } from '@tauri-apps/api/core'
 import { useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -12,7 +11,6 @@ import { showContextMenu } from '../../../../ui-v2/ContextMenu'
 
 export const MoreActions = () => {
   const { activeId, getEditorContent } = useEditorStore()
-  const { execute } = useCommandStore()
   const { t } = useTranslation()
   const ref = useRef<any>(null)
   
@@ -41,28 +39,11 @@ export const MoreActions = () => {
   const handleMoreAction = useCallback(() => {
     const rect = ref.current?.getBoundingClientRect()
     if (rect === undefined) return
-    const { findMark } = useBookMarksStore.getState()
-    const curBookMark = findMark(curFile?.path || '')
 
     showContextMenu({
       x: rect.x,
       y: rect.y + rect.height,
       items: [
-        {
-          label: t('action.bookmark'),
-          value: 'BookMark',
-          checked: curBookMark !== undefined,
-          handler: () => {
-            if (curBookMark) {
-              execute('edit_bookmark_dialog', curBookMark)
-            } else {
-              execute('open_bookmark_dialog', curFile)
-            }
-          },
-        },
-        {
-          type: 'divider' as const,
-        },
         {
           value: 'export_html',
           label: t('contextmenu.editor_tab.export_html'),
@@ -110,7 +91,7 @@ export const MoreActions = () => {
         },
       ],
     })
-  }, [curFile, execute, t, convertText])
+  }, [curFile, t, convertText])
 
   if (!curFile) return null
 

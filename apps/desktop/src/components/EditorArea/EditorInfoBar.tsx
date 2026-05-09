@@ -1,5 +1,4 @@
 import useAiChatStore, { getCurrentAISettingData } from '@/extensions/ai/useAiChatStore'
-import useBookMarksStore from '@/extensions/bookmarks/useBookMarksStore'
 import bus from '@/helper/eventBus'
 import { getFileObject } from '@/helper/files'
 import { FileResultCode } from '@/helper/filesys'
@@ -7,7 +6,7 @@ import { toggleEditorTypeShortcut } from '@/helper/keyboardShortcut'
 import { addNewMarkdownFileEdit, isEmptyEditor } from '@/services/editor-file'
 import { currentWindow } from '@/services/windows'
 import { getWorkspace, WorkSpace } from '@/services/workspace'
-import { useCommandStore, useEditorStateStore, useEditorStore } from '@/stores'
+import { useEditorStateStore, useEditorStore } from '@/stores'
 import useAppSettingStore from '@/stores/useAppSettingStore'
 import useEditorViewTypeStore from '@/stores/useEditorViewTypeStore'
 import useFileTypeConfigStore from '@/stores/useFileTypeConfigStore'
@@ -34,11 +33,10 @@ const EMPTY_FILE_NORMAL_INFO: FileNormalInfo = {
 }
 
 export const EditorInfoBar = memo(() => {
-  const { activeId, folderData, getEditorDelegate, getEditorContent } = useEditorStore()
+  const { activeId, folderData, getEditorContent } = useEditorStore()
   const [workspace, setWorkspace] = useState<WorkSpace | null>(null)
 
   const { editorViewTypeMap } = useEditorViewTypeStore()
-  const { execute } = useCommandStore()
   const { getPostSummary, getPostTranslate } = useAiChatStore()
   const { settingData } = useAppSettingStore()
   const { addAppTask } = useAppTasksStore()
@@ -167,8 +165,6 @@ ${res}
   const handleMoreAction = useCallback(() => {
     const rect = ref1.current?.getBoundingClientRect()
     if (rect === undefined) return
-    const { findMark } = useBookMarksStore.getState()
-    const curBookMark = findMark(curFile?.path || '')
 
     const { aiProvider } = useAiChatStore.getState()
 
@@ -176,18 +172,6 @@ ${res}
       x: rect.x,
       y: rect.y + rect.height,
       items: [
-        {
-          label: t('action.bookmark'),
-          value: 'BookMark',
-          checked: curBookMark !== undefined,
-          handler: () => {
-            if (curBookMark) {
-              execute('edit_bookmark_dialog', curBookMark)
-            } else {
-              execute('open_bookmark_dialog', curFile)
-            }
-          },
-        },
         {
           label: `AI(${aiProvider})`,
           value: 'AI',
@@ -269,10 +253,8 @@ ${res}
     })
   }, [
     curFile,
-    getEditorDelegate,
     t,
     fetchCurFileSummary,
-    execute,
     fetchCurFileTranslate,
     convertText,
   ])
@@ -312,7 +294,7 @@ ${res}
         return curFileTypeConfig ? curFileTypeConfig?.supportedModes?.includes(item.value) : false
       }),
     })
-  }, [curFile, editorViewTypeMap, t, fetchCurFileSummary, execute, fetchCurFileTranslate])
+  }, [curFile, editorViewTypeMap, t, fetchCurFileSummary, fetchCurFileTranslate])
 
   const editorViewType = editorViewTypeMap.get(curFile?.id || '') || 'wysiwyg'
 
