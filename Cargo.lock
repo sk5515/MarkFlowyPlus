@@ -3046,6 +3046,10 @@ dependencies = [
  "mf_file_search",
  "natural-sort-rs",
  "notify",
+ "objc2 0.6.0",
+ "objc2-app-kit 0.3.0",
+ "objc2-foundation 0.3.0",
+ "objc2-web-kit",
  "pin-project-lite",
  "rand 0.9.1",
  "regex",
@@ -3076,7 +3080,9 @@ dependencies = [
  "url",
  "urlencoding",
  "uuid",
+ "webview2-com",
  "window-vibrancy 0.5.2",
+ "windows-core 0.61.0",
  "zhconv",
 ]
 

@@ -1,11 +1,7 @@
 use super::conf;
 use crate::fc::exists;
 use serde::{Deserialize, Serialize};
-use std::{
-    fs::create_dir,
-    path::PathBuf,
-    vec,
-};
+use std::{fs::create_dir, path::PathBuf, vec};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Extension {

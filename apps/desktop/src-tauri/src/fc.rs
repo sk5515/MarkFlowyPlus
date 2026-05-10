@@ -971,6 +971,334 @@ pub mod cmd {
     }
 
     #[tauri::command]
+    pub async fn export_pdf_to_path(app: tauri::AppHandle, html: String, path: String) -> String {
+        #[cfg(target_os = "macos")]
+        {
+            export_pdf_to_path_macos(app, html, path).await
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            export_pdf_to_path_windows(app, html, path).await
+        }
+
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        {
+            let _ = app;
+            let _ = html;
+            let _ = path;
+            "ERROR: selectable PDF export is only implemented on macOS and Windows".to_string()
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn export_pdf_to_path_macos(
+        _app: tauri::AppHandle,
+        html: String,
+        path: String,
+    ) -> String {
+        use std::path::{Path, PathBuf};
+        use std::process::Stdio;
+        use tokio::process::Command;
+        use uuid::Uuid;
+
+        fn find_chrome_path() -> Option<PathBuf> {
+            if let Ok(path) = std::env::var("MARKFLOWY_CHROME_PATH") {
+                let path = PathBuf::from(path);
+                if path.exists() {
+                    return Some(path);
+                }
+            }
+
+            [
+                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+                "/Applications/Chromium.app/Contents/MacOS/Chromium",
+                "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+                "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+            ]
+            .iter()
+            .map(PathBuf::from)
+            .find(|path| path.exists())
+        }
+
+        let chrome_path = match find_chrome_path() {
+            Some(path) => path,
+            None => {
+                return "ERROR: Chrome was not found. Install Google Chrome or set MARKFLOWY_CHROME_PATH.".to_string();
+            }
+        };
+
+        let temp_path =
+            std::env::temp_dir().join(format!("markflowy-export-{}.html", Uuid::new_v4()));
+        if let Err(err) = fs::write(&temp_path, html) {
+            return format!("ERROR: failed to create temporary HTML: {}", err);
+        }
+
+        let user_data_dir =
+            std::env::temp_dir().join(format!("markflowy-chrome-profile-{}", Uuid::new_v4()));
+        if let Err(err) = fs::create_dir_all(&user_data_dir) {
+            let _ = fs::remove_file(&temp_path);
+            return format!("ERROR: failed to create temporary Chrome profile: {}", err);
+        }
+
+        let file_url = match url::Url::from_file_path(&temp_path) {
+            Ok(url) => url,
+            Err(_) => {
+                let _ = fs::remove_file(&temp_path);
+                let _ = fs::remove_dir_all(&user_data_dir);
+                return "ERROR: failed to create temporary HTML URL".to_string();
+            }
+        };
+
+        let mut command = Command::new(chrome_path);
+        command
+            .arg("--headless")
+            .arg("--disable-gpu")
+            .arg("--disable-extensions")
+            .arg("--disable-background-networking")
+            .arg("--run-all-compositor-stages-before-draw")
+            .arg("--allow-file-access-from-files")
+            .arg("--no-pdf-header-footer")
+            .arg("--print-to-pdf-no-header")
+            .arg("--no-margins")
+            .arg("--timeout=120000")
+            .arg(format!("--user-data-dir={}", user_data_dir.display()))
+            .arg(format!("--print-to-pdf={}", path))
+            .arg(file_url.as_str())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+        command.kill_on_drop(true);
+
+        let mut child = match command.spawn() {
+            Ok(child) => child,
+            Err(err) => {
+                let _ = fs::remove_file(&temp_path);
+                let _ = fs::remove_dir_all(&user_data_dir);
+                return format!("ERROR: failed to start Chrome PDF export: {}", err);
+            }
+        };
+
+        let started_at = std::time::Instant::now();
+        let timeout = std::time::Duration::from_secs(130);
+        let mut last_pdf_size = 0;
+        let mut stable_pdf_size_checks = 0;
+
+        let result = loop {
+            let pdf_size = Path::new(&path)
+                .metadata()
+                .map(|metadata| metadata.len())
+                .unwrap_or(0);
+            if pdf_size > 0 {
+                if pdf_size == last_pdf_size {
+                    stable_pdf_size_checks += 1;
+                } else {
+                    stable_pdf_size_checks = 0;
+                    last_pdf_size = pdf_size;
+                }
+
+                if stable_pdf_size_checks >= 2 {
+                    let _ = child.kill().await;
+                    let _ = child.wait().await;
+                    break "OK".to_string();
+                }
+            }
+
+            match child.try_wait() {
+                Ok(Some(_status)) => {
+                    let output = match child.wait_with_output().await {
+                        Ok(output) => output,
+                        Err(err) => {
+                            break format!(
+                                "ERROR: failed to read Chrome PDF export result: {}",
+                                err
+                            );
+                        }
+                    };
+
+                    if output.status.success()
+                        && Path::new(&path)
+                            .metadata()
+                            .map(|metadata| metadata.len() > 0)
+                            .unwrap_or(false)
+                    {
+                        break "OK".to_string();
+                    }
+
+                    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+                    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                    let detail = if !stderr.is_empty() { stderr } else { stdout };
+                    if detail.is_empty() {
+                        break format!(
+                            "ERROR: Chrome PDF export failed with status {}",
+                            output.status
+                        );
+                    } else {
+                        break format!("ERROR: Chrome PDF export failed: {}", detail);
+                    }
+                }
+                Ok(None) => {}
+                Err(err) => break format!("ERROR: failed to monitor Chrome PDF export: {}", err),
+            }
+
+            if started_at.elapsed() >= timeout {
+                let _ = child.kill().await;
+                let _ = child.wait().await;
+                let _ = fs::remove_file(&path);
+                break "ERROR: Chrome PDF export timed out".to_string();
+            }
+
+            tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+        };
+
+        let _ = fs::remove_file(&temp_path);
+        let _ = fs::remove_dir_all(&user_data_dir);
+
+        result
+    }
+
+    #[cfg(target_os = "windows")]
+    async fn export_pdf_to_path_windows(
+        app: tauri::AppHandle,
+        html: String,
+        path: String,
+    ) -> String {
+        use tauri::{
+            utils::config::WebviewUrl, webview::PageLoadEvent, Manager, WebviewWindowBuilder,
+        };
+        use tokio::sync::oneshot;
+        use uuid::Uuid;
+
+        let temp_path =
+            std::env::temp_dir().join(format!("markflowy-export-{}.html", Uuid::new_v4()));
+        if let Err(err) = fs::write(&temp_path, html) {
+            return format!("ERROR: failed to create temporary HTML: {}", err);
+        }
+
+        let file_url = match url::Url::from_file_path(&temp_path) {
+            Ok(url) => url,
+            Err(_) => {
+                let _ = fs::remove_file(&temp_path);
+                return "ERROR: failed to create temporary HTML URL".to_string();
+            }
+        };
+
+        let label = format!("pdf-export-{}", Uuid::new_v4());
+        let (tx, rx) = oneshot::channel::<String>();
+        let tx = std::sync::Arc::new(std::sync::Mutex::new(Some(tx)));
+        let output_path = path.clone();
+
+        let window_result =
+            WebviewWindowBuilder::new(&app, label.clone(), WebviewUrl::External(file_url))
+                .title("PDF Export")
+                .visible(false)
+                .decorations(false)
+                .resizable(false)
+                .inner_size(794.0, 1123.0)
+                .on_page_load(move |window, payload| {
+                    if matches!(payload.event(), PageLoadEvent::Finished) {
+                        let window = window.clone();
+                        let output_path = output_path.clone();
+                        let tx = tx.clone();
+
+                        tauri::async_runtime::spawn(async move {
+                            tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+                            export_loaded_webview_to_pdf_windows(window, output_path, tx);
+                        });
+                    }
+                })
+                .build();
+
+        let window = match window_result {
+            Ok(window) => window,
+            Err(err) => {
+                let _ = fs::remove_file(&temp_path);
+                return format!("ERROR: failed to create PDF export window: {}", err);
+            }
+        };
+
+        let result = match tokio::time::timeout(std::time::Duration::from_secs(15), rx).await {
+            Ok(Ok(message)) => message,
+            Ok(Err(_)) => "ERROR: PDF export was cancelled".to_string(),
+            Err(_) => "ERROR: PDF export timed out".to_string(),
+        };
+
+        let _ = window.close();
+        if let Some(export_window) = app.get_webview_window(&label) {
+            let _ = export_window.close();
+        }
+        let _ = fs::remove_file(&temp_path);
+
+        result
+    }
+
+    #[cfg(target_os = "windows")]
+    fn export_loaded_webview_to_pdf_windows(
+        window: tauri::WebviewWindow,
+        path: String,
+        tx: std::sync::Arc<std::sync::Mutex<Option<tokio::sync::oneshot::Sender<String>>>>,
+    ) {
+        let tx_for_error = tx.clone();
+        if let Err(err) = window.with_webview(move |webview| {
+            use webview2_com::Microsoft::Web::WebView2::Win32::{
+                ICoreWebView2Environment6, ICoreWebView2_7, PrintToPdfCompletedHandler,
+                COREWEBVIEW2_PRINT_ORIENTATION_PORTRAIT,
+            };
+            use windows_core::{BOOL, PCWSTR};
+
+            unsafe {
+                let webview = webview.controller().CoreWebView2()?;
+                let environment = webview.Environment()?.cast::<ICoreWebView2Environment6>()?;
+                let print_settings = environment.CreatePrintSettings()?;
+                print_settings.SetOrientation(COREWEBVIEW2_PRINT_ORIENTATION_PORTRAIT)?;
+                print_settings.SetPageWidth(8.27)?;
+                print_settings.SetPageHeight(11.69)?;
+                print_settings.SetMarginTop(0.0)?;
+                print_settings.SetMarginBottom(0.0)?;
+                print_settings.SetMarginLeft(0.0)?;
+                print_settings.SetMarginRight(0.0)?;
+                print_settings.SetScaleFactor(1.0)?;
+                print_settings.SetShouldPrintBackgrounds(true)?;
+                print_settings.SetShouldPrintHeaderAndFooter(false)?;
+                let webview = webview.cast::<ICoreWebView2_7>()?;
+                let pdf_path: Vec<u16> = path.encode_utf16().chain(std::iter::once(0)).collect();
+                let tx = tx.clone();
+                let handler = PrintToPdfCompletedHandler::create(Box::new(
+                    move |error_code, success: BOOL| {
+                        let message = if error_code.is_err() {
+                            format!("ERROR: WebView2 failed to create PDF: {:?}", error_code)
+                        } else if !success.as_bool() {
+                            "ERROR: WebView2 returned unsuccessful PDF export".to_string()
+                        } else {
+                            "OK".to_string()
+                        };
+
+                        if let Ok(mut sender) = tx.lock() {
+                            if let Some(sender) = sender.take() {
+                                let _ = sender.send(message);
+                            }
+                        }
+
+                        Ok(())
+                    },
+                ));
+
+                webview.PrintToPdf(
+                    PCWSTR::from_raw(pdf_path.as_ptr()),
+                    &print_settings,
+                    &handler,
+                )?;
+                Ok(())
+            }
+        }) {
+            if let Ok(mut sender) = tx_for_error.lock() {
+                if let Some(sender) = sender.take() {
+                    let _ = sender.send(format!("ERROR: failed to access WebView2: {}", err));
+                }
+            }
+        }
+    }
+
+    #[tauri::command]
     pub fn is_dir(path: &str) -> bool {
         fc::is_dir(path)
     }

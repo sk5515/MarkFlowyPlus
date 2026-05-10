@@ -35,11 +35,6 @@ export const EditorViewModeButtons = memo(() => {
       icon: 'ri-edit-2-line',
       label: t('view.wysiwyg'),
     },
-    {
-      mode: EditorViewType.PREVIEW,
-      icon: 'ri-eye-line',
-      label: t('view.preview'),
-    },
   ].filter((item) => supportedModes.includes(item.mode))
 
   return (

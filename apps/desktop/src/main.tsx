@@ -9,6 +9,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import 'remixicon/fonts/remixicon.css'
 import App from './App'
+import { installDisableTextInputAssistance } from './helper/disableTextInputAssistance'
 import { installInstantClick } from './helper/installInstantClick'
 import { installGlobalErrorLogging } from './helper/logger'
 import './atom.css'
@@ -33,6 +34,7 @@ const Main = () => {
 }
 
 const rootElement = document.getElementById('root')!
+installDisableTextInputAssistance(rootElement)
 installInstantClick(rootElement)
 rootElement.addEventListener('dragover', (e) => {
   e.preventDefault()

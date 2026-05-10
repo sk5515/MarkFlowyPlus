@@ -132,6 +132,7 @@ pub fn run() {
             fc::cmd::rename_fs,
             fc::cmd::trash_delete,
             fc::cmd::export_html_to_path,
+            fc::cmd::export_pdf_to_path,
             fc::cmd::is_dir,
             fc::cmd::get_path_name,
             fc::cmd::get_file_normal_info,

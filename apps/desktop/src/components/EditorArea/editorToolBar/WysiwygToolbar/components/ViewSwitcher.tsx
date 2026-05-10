@@ -22,7 +22,7 @@ export const ViewSwitcher = () => {
   const viewTypeIconMap: Record<string, string> = {
     sourceCode: 'ri-code-s-slash-line',
     wysiwyg: 'ri-edit-2-line',
-    preview: 'ri-eye-line',
+    preview: 'ri-edit-2-line',
   }
 
   const preventMenuButtonClick = useCallback((event?: MouseEvent<HTMLElement>) => {
@@ -56,12 +56,6 @@ export const ViewSwitcher = () => {
           shortcut: toggleEditorTypeShortcut,
           checked: editorViewType === EditorViewType.WYSIWYG,
           handler: () => emitEditorViewTypeSwitch(EditorViewType.WYSIWYG),
-        },
-        {
-          label: t('view.preview'),
-          value: EditorViewType.PREVIEW,
-          checked: editorViewType === EditorViewType.PREVIEW,
-          handler: () => emitEditorViewTypeSwitch(EditorViewType.PREVIEW),
         },
       ].filter((item) => {
         return curFileTypeConfig ? curFileTypeConfig?.supportedModes?.includes(item.value) : false

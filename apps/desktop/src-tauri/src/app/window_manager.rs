@@ -2,10 +2,8 @@ use crate::{compat, WINDOW_INSTANCES};
 use serde_json;
 use std::path::PathBuf;
 use tauri::{
-    command,
-    utils::config::Color,
-    webview::PageLoadEvent,
-    AppHandle, Manager, WebviewUrl, WebviewWindowBuilder,
+    command, utils::config::Color, webview::PageLoadEvent, AppHandle, Manager, WebviewUrl,
+    WebviewWindowBuilder,
 };
 use uuid;
 

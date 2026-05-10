@@ -119,12 +119,6 @@ export const EditorInfoBar = memo(() => {
           checked: editorViewType === EditorViewType.WYSIWYG,
           handler: () => emitEditorViewTypeSwitch(EditorViewType.WYSIWYG),
         },
-        {
-          label: t('view.preview'),
-          value: EditorViewType.PREVIEW,
-          checked: editorViewType === EditorViewType.PREVIEW,
-          handler: () => emitEditorViewTypeSwitch(EditorViewType.PREVIEW),
-        },
       ].filter((item) => {
         return curFileTypeConfig ? curFileTypeConfig?.supportedModes?.includes(item.value) : false
       }),
@@ -136,7 +130,7 @@ export const EditorInfoBar = memo(() => {
   const viewTypeIconMap = {
     sourceCode: 'ri-code-s-slash-line',
     wysiwyg: 'ri-edit-2-line',
-    preview: 'ri-eye-line',
+    preview: 'ri-edit-2-line',
   }
 
   if (!activeId || !curFile || isEmptyEditor(curFile.id)) return null

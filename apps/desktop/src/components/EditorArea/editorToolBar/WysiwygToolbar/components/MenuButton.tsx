@@ -56,12 +56,6 @@ export const MenuButton = memo(() => {
               checked: editorViewType === EditorViewType.WYSIWYG,
               handler: () => emitEditorViewTypeSwitch(EditorViewType.WYSIWYG),
             },
-            {
-              label: t('view.preview'),
-              value: EditorViewType.PREVIEW,
-              checked: editorViewType === EditorViewType.PREVIEW,
-              handler: () => emitEditorViewTypeSwitch(EditorViewType.PREVIEW),
-            },
           ].filter((item) => {
             return curFileTypeConfig ? curFileTypeConfig?.supportedModes?.includes(item.value) : false
           }),

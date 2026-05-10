@@ -1,10 +1,7 @@
 use crate::{fc::exists, APP_DIR};
 use etcetera::{choose_app_strategy, AppStrategy, AppStrategyArgs};
 use serde_json::Value;
-use std::{
-    collections::BTreeMap,
-    path::PathBuf,
-};
+use std::{collections::BTreeMap, path::PathBuf};
 use tauri::{AppHandle, Manager, Theme};
 use tauri_plugin_store::{Store, StoreBuilder};
 

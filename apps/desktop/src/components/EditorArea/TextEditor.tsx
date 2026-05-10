@@ -1,6 +1,7 @@
 import { EVENT } from '@/constants'
 import { clipboardRead } from '@/helper/clipboard'
 import bus from '@/helper/eventBus'
+import { buildExportHtml } from '@/helper/exportHtml'
 import {
   delSaveOpenedEditorEntries,
   getFileObject,
@@ -978,14 +979,22 @@ function TextEditor(props: TextEditorProps) {
         if (!path) return
 
         try {
-          const [{ default: html2canvas }, { canvasToPdfBytes }] = await Promise.all([
-            import('html2canvas'),
-            import('@/helper/pdf'),
-          ])
-          const canvas = await html2canvas(document.getElementById(id) as HTMLElement)
-          const data = canvasToPdfBytes(canvas)
-
-          await invoke('write_u8_array_to_file', { filePath: path, content: data })
+          const res = await editorRef.current?.exportHtml()
+          const html = buildExportHtml({
+            title: curFile.name || 'Document',
+            content: res || '',
+            editorClassName: document.getElementById(id)?.className,
+            themeMode: document.documentElement.dataset.themeMode,
+            fullWidth: settingData.editor_full_width,
+            rootFontSize: settingData.editor_root_font_size,
+            rootLineHeight: settingData.editor_root_line_height,
+            rootFontFamily: settingData.editor_root_font_family,
+            codeFontFamily: settingData.editor_code_font_family,
+          })
+          const result = await invoke<string>('export_pdf_to_path', { html, path })
+          if (result !== 'OK') {
+            throw new Error(result)
+          }
           await revealExportedFile(path)
         } catch (error) {
           toast.error(String(error))
@@ -1006,27 +1015,17 @@ function TextEditor(props: TextEditorProps) {
           if (!path) return
 
           const res = await editorRef.current?.exportHtml()
-          const scStyled = document.head.querySelectorAll('style[data-styled]')
-
-          const html = `
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <style>
-  ${scStyled[0].innerHTML}
-  </style>
-  </head>
-  <body style="height: 100vh; overflow: auto;">
-  <div class="${document.getElementById(id)?.className}">
-  ${res}
-  </div>
-  </body>
-          </html>
-          `
+          const html = buildExportHtml({
+            title: curFile.name || 'Document',
+            content: res || '',
+            editorClassName: document.getElementById(id)?.className,
+            themeMode: document.documentElement.dataset.themeMode,
+            fullWidth: settingData.editor_full_width,
+            rootFontSize: settingData.editor_root_font_size,
+            rootLineHeight: settingData.editor_root_line_height,
+            rootFontFamily: settingData.editor_root_font_family,
+            codeFontFamily: settingData.editor_code_font_family,
+          })
 
           await invoke('export_html_to_path', { str: html, path })
           await revealExportedFile(path)
@@ -1103,10 +1102,14 @@ function TextEditor(props: TextEditorProps) {
         height: '100%',
       },
       wysiwygTextContainerProps: {
-        spellCheck: settingData.wysiwyg_editor_spellcheck,
+        spellCheck: false,
+        autoCorrect: 'off',
+        autoCapitalize: 'off',
       },
       sourceCodeTextContainerProps: {
-        spellCheck: settingData.source_code_editor_spellcheck,
+        spellCheck: false,
+        autoCorrect: 'off',
+        autoCapitalize: 'off',
       },
       offset: { top: 10, left: 16 },
       styleToken: {
