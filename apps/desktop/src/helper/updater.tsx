@@ -4,7 +4,6 @@ import { invoke } from '@tauri-apps/api/core'
 import type { Update } from '@tauri-apps/plugin-updater'
 import { check } from '@tauri-apps/plugin-updater'
 import { getI18n } from 'react-i18next'
-import Markdown from 'react-markdown'
 import { toast } from 'zens'
 import { logger } from './logger'
 
@@ -57,6 +56,7 @@ export const checkUpdate = async (opt: { install: boolean } = { install: false }
         installUpdate(update)
       } else {
         const dateString = (update?.date || '').split('.')[0]
+        const Markdown = (await import('react-markdown')).default
 
         NiceModal.show(MODAL_CONFIRM_ID, {
           title: `New version ${update.version}`,

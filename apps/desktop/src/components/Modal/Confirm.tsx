@@ -17,8 +17,13 @@ export const MODAL_CONFIRM_ID = 'modal-confirm'
 
 const Overlay = styled.div`
   position: fixed;
-  inset: 0;
-  z-index: 6000;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  min-width: 100vw;
+  min-height: 100vh;
+  z-index: 9000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -60,8 +65,24 @@ const Content = styled.div`
 const Actions = styled.div`
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  column-gap: 5px;
+  row-gap: 5px;
+  gap: 5px;
   flex-wrap: wrap;
+
+  > * {
+    margin: 0 !important;
+  }
+
+  > * + * {
+    margin-left: 5px !important;
+  }
+
+  button {
+    min-width: 96px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 `
 
 const ActionButton = styled.button<{ $primary?: boolean }>`

@@ -11,6 +11,17 @@ import { fileTreeHandler } from '../FileTree/FileTree'
 import { MfIconButton } from '../ui-v2/Button'
 import { Container as SideBarContainer, SideBarHeader } from './styles'
 
+const focusSearchInput = () => {
+  window.setTimeout(() => {
+    const input = document.querySelector<HTMLInputElement>(
+      '.search-input input, input.search-input',
+    )
+
+    input?.focus()
+    input?.select()
+  }, 0)
+}
+
 function SideBar() {
   const { t } = useTranslation()
   const { folderData } = useEditorStore()
@@ -87,6 +98,9 @@ function SideBar() {
 
               const handleRightBarItemClick = () => {
                 setActiveRightBarItemKey(item.key)
+                if (item.key === RIGHTBARITEMKEYS.Search) {
+                  focusSearchInput()
+                }
               }
 
               return (

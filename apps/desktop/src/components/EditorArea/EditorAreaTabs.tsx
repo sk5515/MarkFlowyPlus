@@ -3,7 +3,7 @@ import { getFileObject, getSaveOpenedEditorEntries } from '@/helper/files'
 import type { IFile } from '@/helper/filesys'
 import { checkUnsavedFiles } from '@/services/checkUnsavedFiles'
 import { useCommandStore, useEditorStateStore, useEditorStore } from '@/stores'
-import { memo, useCallback, useEffect, useRef } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 import { Tooltip } from 'zens'
@@ -20,6 +20,7 @@ const Container = styled.div`
   .tab-items {
     display: flex;
     flex: 0 1 auto;
+    min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;
 
@@ -48,7 +49,7 @@ const Container = styled.div`
   .tab-filling {
     flex: 1 1 auto;
     border-bottom: 1px solid ${(props) => props.theme.borderColor};
-    border-left: 1px solid ${(props) => props.theme.borderColor};
+    border-left: 0;
   }
 `
 const EditorAreaTabs = memo(() => {
@@ -71,6 +72,16 @@ const EditorAreaTabs = memo(() => {
     setActiveId(id)
   }
 
+  useLayoutEffect(() => {
+    if (!htmlRef.current || !activeId) return
+
+    const activeTab = htmlRef.current.querySelector<HTMLElement>('[data-active-tab="true"]')
+    activeTab?.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest',
+    })
+  }, [activeId, opened.length])
+
   const close = useCallback(
     (ev: React.MouseEvent<HTMLElement, MouseEvent> | undefined, id: string) => {
       ev?.stopPropagation()
@@ -90,17 +101,43 @@ const EditorAreaTabs = memo(() => {
     [],
   )
 
+  const closeWithUnsavedCheck = useCallback(
+    (ev: React.MouseEvent<HTMLElement, MouseEvent> | undefined, id: string) => {
+      ev?.stopPropagation()
+      ev?.preventDefault()
+
+      if (
+        checkUnsavedFiles({
+          fileIds: [id],
+          onSaveAndClose: async () => {
+            const saveHandler = getSaveOpenedEditorEntries(id)
+            await saveHandler?.()
+            close(undefined, id)
+          },
+          onUnsavedAndClose: () => {
+            close(undefined, id)
+          },
+        }) > 0
+      ) {
+        return
+      }
+
+      close(undefined, id)
+    },
+    [close],
+  )
+
   useEffect(() => {
     useCommandStore.getState().addCommand({
       id: EVENT.app_closeCurrentEditorTab,
       handler: () => {
         const activeId = useEditorStore.getState().activeId
         if (activeId) {
-          close(undefined, activeId)
+          closeWithUnsavedCheck(undefined, activeId)
         }
       },
     })
-  }, [])
+  }, [closeWithUnsavedCheck])
 
   const moveActiveTab = (dir: 'left' | 'right') => {
     const { opened, activeId, setActiveId } = useEditorStore.getState()
@@ -134,24 +171,7 @@ const EditorAreaTabs = memo(() => {
           const handleMiddleClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
             // 鼠标中键点击关闭标签页
             if (e.button !== 1) return
-            e.stopPropagation()
-            e.preventDefault()
-            if (
-              checkUnsavedFiles({
-                fileIds: [id],
-                onSaveAndClose: async () => {
-                  const saveHandler = getSaveOpenedEditorEntries(id)
-                  await saveHandler?.()
-                  close(e, id)
-                },
-                onUnsavedAndClose: () => {
-                  close(e, id)
-                },
-              }) > 0
-            ) {
-              return
-            }
-            close(e, id)
+            closeWithUnsavedCheck(e, id)
           }
 
           const handleContextMenu = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -165,22 +185,7 @@ const EditorAreaTabs = memo(() => {
                   label: t('contextmenu.editor_tab.close'),
                   value: 'close',
                   handler: () => {
-                    if (
-                      checkUnsavedFiles({
-                        fileIds: [id],
-                        onSaveAndClose: async () => {
-                          const saveHandler = getSaveOpenedEditorEntries(id)
-                          await saveHandler?.()
-                          close(e, id)
-                        },
-                        onUnsavedAndClose: () => {
-                          close(e, id)
-                        },
-                      }) > 0
-                    ) {
-                      return
-                    }
-                    close(e, id)
+                    closeWithUnsavedCheck(undefined, id)
                   },
                 },
                 {
@@ -240,24 +245,25 @@ const EditorAreaTabs = memo(() => {
             <Tooltip title={file.name} key={id} {...tabTooltipProps}>
               <TabItem
                 active={active}
+                data-active-tab={active}
                 onClick={() => onSelectItem(file.id)}
                 key={id}
                 onContextMenu={handleContextMenu}
                 onMouseDown={handleMiddleClick}
               >
-                <span
-                  style={{
-                    maxWidth: '160px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {file.name}
-                </span>
+                <span className='tab-title'>{file.name}</span>
 
                 <div className='tab-items__right'>
                   {editorState?.hasUnsavedChanges ? (
-                    <Dot />
+                    <Dot
+                      as='button'
+                      type='button'
+                      aria-label={t('contextmenu.editor_tab.close')}
+                      title={t('contextmenu.editor_tab.close')}
+                      onClick={(ev: React.MouseEvent<HTMLElement, MouseEvent> | undefined) =>
+                        closeWithUnsavedCheck(ev, id)
+                      }
+                    />
                   ) : (
                     <MfIconButton
                       icon='ri-close-line'

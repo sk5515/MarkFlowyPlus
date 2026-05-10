@@ -6,6 +6,7 @@ interface MfIconButtonProps {
   icon: string
   className?: string
   onClick: (e?: React.MouseEvent<HTMLElement>) => void
+  onMouseDown?: (e?: React.MouseEvent<HTMLElement>) => void
   iconRef?: React.RefObject<any>
   active?: boolean
   tooltipProps?: Omit<TooltipProps, 'children'> & {
@@ -21,6 +22,7 @@ export const MfIconButton = (props: MfIconButtonProps) => {
   const {
     icon,
     onClick,
+    onMouseDown,
     tooltipProps,
     iconRef,
     rounded = 'square',
@@ -41,10 +43,10 @@ export const MfIconButton = (props: MfIconButtonProps) => {
   if (tooltipProps) {
     return (
       <Tooltip style={{ zIndex: 11 }} {...tooltipProps}>
-        <i ref={iconRef} className={iconCls} onClick={onClick}></i>
+        <i ref={iconRef} className={iconCls} onMouseDown={onMouseDown} onClick={onClick}></i>
       </Tooltip>
     )
   }
 
-  return <i ref={iconRef} className={iconCls} onClick={onClick}></i>
+  return <i ref={iconRef} className={iconCls} onMouseDown={onMouseDown} onClick={onClick}></i>
 }

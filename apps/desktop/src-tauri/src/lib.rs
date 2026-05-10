@@ -24,7 +24,7 @@ use app::{
 };
 use dotenv;
 use lazy_static::lazy_static;
-use tauri::{Manager, Runtime, State};
+use tauri::{Manager, State};
 
 lazy_static! {
     /// FIXME Haven't found a better way to get the home dir yet, and we will optimize it later.
@@ -98,7 +98,7 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_single_instance::init(
-            |app_handle: &tauri::AppHandle, args: Vec<String>, cwd: String| {
+            |app_handle: &tauri::AppHandle, args: Vec<String>, _cwd: String| {
                 // 提取文件路径参数（args[0]是程序本身，args[1..]是传递的参数）
                 let opened_urls = if args.len() > 1 {
                     // 跳过程序本身，将其余参数用逗号连接
@@ -109,7 +109,7 @@ pub fn run() {
 
                 // 调用setup函数处理参数和窗口复用逻辑
                 if let Err(e) = crate::setup::init(app_handle.clone(), opened_urls) {
-                    println!("单例参数处理失败: {:?}", e);
+                    eprintln!("单例参数处理失败: {:?}", e);
                 }
             },
         ))
@@ -221,10 +221,6 @@ pub fn run() {
                 let window_label = window.label();
                 if let Ok(mut instances) = WINDOW_INSTANCES.lock() {
                     instances.remove(window_label);
-                    println!(
-                        "Removed window '{}' from WINDOW_INSTANCES on close",
-                        window_label
-                    );
                 }
             }
         })
@@ -249,21 +245,13 @@ pub fn run() {
                         .collect::<Vec<_>>()
                         .join(",");
 
-                    println!("Processed URLs string: {}", urls_str);
-
                     if let Some(window) = window_manager::get_focused_window(app) {
                         use tauri::Emitter;
-                        println!("Emitting to focused window: {}", window.label());
-                        let result = window.emit("opened-urls", urls_str.clone());
-                        println!("Emit result: {:?}", result);
+                        let _ = window.emit("opened-urls", urls_str.clone());
                     } else {
                         if let Some(window) = window_manager::get_last_opened_window(app) {
                             use tauri::Emitter;
-                            println!("Emitting to last opened window: {}", window.label());
-                            let result = window.emit("opened-urls", urls_str.clone());
-                            println!("Emit result: {:?}", result);
-                        } else {
-                            println!("No window found to emit event");
+                            let _ = window.emit("opened-urls", urls_str.clone());
                         }
                     }
                 }

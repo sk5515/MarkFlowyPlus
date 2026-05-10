@@ -22,6 +22,7 @@ function initialState(): FindReplaceState {
 }
 
 type UseFindReplaceReturn = FindReplaceState & {
+  find: () => void
   findNext: () => void
   findPrev: () => void
   stopFind: () => void
@@ -102,12 +103,9 @@ export function useFindReplace(ctx: EditorContext): UseFindReplaceReturn {
     })
   }, [addCommand, stopFind])
 
-  useEffect(() => {
-    find()
-  }, [find, state.query, state.caseSensitive])
-
   return {
     ...state,
+    find,
     findNext,
     findPrev,
     stopFind,

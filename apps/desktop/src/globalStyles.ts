@@ -5,6 +5,7 @@ export const GlobalStyles = createGlobalStyle`
     border-radius: 10px;
     overflow: hidden;
     background-color:  ${(props) => props.theme.bgColor};
+    --mf-bg-color: ${(props) => props.theme.bgColor};
   }
   
   body {
@@ -28,6 +29,7 @@ export const GlobalStyles = createGlobalStyle`
     width: 32px;
     font-size: 1rem;
     cursor: pointer;
+    color: ${(props) => props.theme.primaryFontColor};
     outline: none;
     box-shadow: none;
     transition: none;
@@ -99,6 +101,7 @@ export const GlobalStyles = createGlobalStyle`
   [class*=' ri-'] {
     outline: none;
     box-shadow: none;
+    color: inherit;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -163,9 +166,40 @@ export const GlobalStyles = createGlobalStyle`
     display: none !important;
   }
 
+  .file-tree-row,
+  .file-tree-row:focus,
+  .file-tree-row:focus-visible,
+  .file-tree-row:active,
+  .file-tree-row[aria-selected='true'] {
+    outline: none !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    border-top: 0 !important;
+    border-bottom: 0 !important;
+  }
+
+  .file-tree-row::before,
+  .file-tree-row::after {
+    content: none !important;
+    display: none !important;
+  }
+
   .popover {
     border: 1px solid ${(props) => props.theme.borderColor};
   }
+
+  .mf-dialog__footer {
+    gap: 5px !important;
+  }
+
+  .mf-dialog__footer > * {
+    margin: 0 !important;
+  }
+
+  .mf-dialog__footer > * + * {
+    margin-left: 5px !important;
+  }
+
   .display-none {
     display: none;
   }
@@ -241,8 +275,96 @@ export const GlobalStyles = createGlobalStyle`
     overflow-x: auto !important;
   }
 
+  .editor-view-wysiwyg .cm-copy-btn {
+    top: 4px !important;
+    right: 4px !important;
+    width: 18px !important;
+    height: 18px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    font-size: 11px !important;
+    line-height: 1;
+    opacity: 0.36;
+    background: transparent !important;
+  }
+
+  .editor-view-wysiwyg .cm-copy-btn:hover,
+  .editor-view-wysiwyg .cm-copy-btn:focus,
+  .editor-view-wysiwyg .cm-copy-btn:focus-visible {
+    opacity: 1;
+    background: ${(props) => props.theme.hoverColor} !important;
+  }
+
+  .editor-view-wysiwyg .cm-copy-btn i {
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .editor-view-wysiwyg .code-block__menu {
+    height: 0;
+    position: relative;
+    z-index: 11;
+  }
+
+  .editor-view-wysiwyg .code-block__reference {
+    top: 4px !important;
+    left: 4px !important;
+    width: auto !important;
+    height: 18px !important;
+    align-items: center;
+  }
+
+  .editor-view-wysiwyg .code-block__languages__input {
+    width: 112px !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    padding: 0 6px !important;
+    border-radius: ${(props) => props.theme.smallBorderRadius};
+    font-size: 11px !important;
+    line-height: 18px !important;
+  }
+
+  .editor-view-wysiwyg .code-block__languages__input::placeholder {
+    color: transparent !important;
+  }
+
+  .editor-view-wysiwyg .code-block__languages {
+    margin-top: 2px !important;
+  }
+
+  .editor-view-wysiwyg .cm-gutters,
+  .editor-view-wysiwyg .cm-lineNumbers,
+  .editor-view-wysiwyg .cm-gutter.cm-lineNumbers {
+    display: none !important;
+  }
+
   .editor-view-wysiwyg {
     overflow-x: hidden;
+  }
+
+  .editor-view-wysiwyg p[data-placeholder]::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  .editor-view-wysiwyg .prosemirror-flat-list[data-list-kind='bullet'] > .list-marker {
+    background-color: transparent !important;
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .editor-view-wysiwyg .prosemirror-flat-list[data-list-kind='bullet'] > .list-marker::before {
+    content: '';
+    width: 0.34em;
+    height: 0.34em;
+    border-radius: 50%;
+    background-color: currentColor;
   }
 
   .editor-view-wysiwyg .code-block__reference {
@@ -261,6 +383,7 @@ export const GlobalStyles = createGlobalStyle`
   .editor-view-wysiwyg .cm-content {
     width: max-content;
     min-width: 100%;
+    padding-right: 24px;
   }
 
   .editor-view-wysiwyg .cm-line {

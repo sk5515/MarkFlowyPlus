@@ -197,7 +197,7 @@ pub fn read_directory_async(
             Ok(crate::task_system::task::TaskStatus::Done((_, TaskOutput::Empty))) => {
                 Ok(Vec::new())
             }
-            Ok(crate::task_system::task::TaskStatus::Error(ReadDirError::FileError(fc))) => {
+            Ok(crate::task_system::task::TaskStatus::Error(ReadDirError::FileError(_fc))) => {
                 // 使用TaskJoin替代不存在的TaskFailed
                 Err(SystemError::TaskJoin(TaskId::nil()))
             }

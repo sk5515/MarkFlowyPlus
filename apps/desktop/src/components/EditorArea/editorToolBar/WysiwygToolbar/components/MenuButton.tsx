@@ -1,14 +1,15 @@
 import { MfIconLabelButton } from '@/components/ui-v2/Button/icon-label-button'
+import { emitEditorViewTypeSwitch } from '@/helper/editorViewTypeSwitch'
 import bus from '@/helper/eventBus'
 import { getFileObject } from '@/helper/files'
 import { toggleEditorTypeShortcut } from '@/helper/keyboardShortcut'
 import { useEditorStore } from '@/stores'
 import useEditorViewTypeStore from '@/stores/useEditorViewTypeStore'
 import useFileTypeConfigStore from '@/stores/useFileTypeConfigStore'
-import { memo, useCallback, useRef } from 'react'
+import { memo, type MouseEvent, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { EditorViewType } from 'rme'
-import { showContextMenu } from '../../../../ui-v2/ContextMenu'
+import { toggleContextMenu } from '../../../../ui-v2/ContextMenu'
 
 export const MenuButton = memo(() => {
   const { activeId } = useEditorStore()
@@ -19,14 +20,21 @@ export const MenuButton = memo(() => {
   const curFile = activeId ? getFileObject(activeId) : undefined
   const editorViewType = editorViewTypeMap.get(curFile?.id || '') || 'wysiwyg'
 
-  const handleMenuClick = useCallback(() => {
+  const preventMenuButtonClick = useCallback((event?: MouseEvent<HTMLElement>) => {
+    event?.preventDefault()
+    event?.stopPropagation()
+  }, [])
+
+  const handleMenuClick = useCallback((event?: MouseEvent<HTMLElement>) => {
+    preventMenuButtonClick(event)
+
     const rect = ref.current?.getBoundingClientRect()
     if (rect === undefined) return
 
     const { getFileTypeConfigById } = useFileTypeConfigStore.getState()
     const curFileTypeConfig = getFileTypeConfigById(curFile?.id || '')
 
-    showContextMenu({
+    toggleContextMenu({
       x: rect.x,
       y: rect.y + rect.height,
       items: [
@@ -39,20 +47,20 @@ export const MenuButton = memo(() => {
               value: EditorViewType.SOURCECODE,
               shortcut: toggleEditorTypeShortcut,
               checked: editorViewType === EditorViewType.SOURCECODE,
-              handler: () => bus.emit('editor_toggle_type', EditorViewType.SOURCECODE),
+              handler: () => emitEditorViewTypeSwitch(EditorViewType.SOURCECODE),
             },
             {
               label: t('view.wysiwyg'),
               value: EditorViewType.WYSIWYG,
               shortcut: toggleEditorTypeShortcut,
               checked: editorViewType === EditorViewType.WYSIWYG,
-              handler: () => bus.emit('editor_toggle_type', EditorViewType.WYSIWYG),
+              handler: () => emitEditorViewTypeSwitch(EditorViewType.WYSIWYG),
             },
             {
               label: t('view.preview'),
               value: EditorViewType.PREVIEW,
               checked: editorViewType === EditorViewType.PREVIEW,
-              handler: () => bus.emit('editor_toggle_type', EditorViewType.PREVIEW),
+              handler: () => emitEditorViewTypeSwitch(EditorViewType.PREVIEW),
             },
           ].filter((item) => {
             return curFileTypeConfig ? curFileTypeConfig?.supportedModes?.includes(item.value) : false
@@ -84,7 +92,7 @@ export const MenuButton = memo(() => {
         },
       ],
     })
-  }, [curFile, editorViewType, t])
+  }, [curFile, editorViewType, preventMenuButtonClick, t])
 
   if (!curFile) return null
 
@@ -92,7 +100,8 @@ export const MenuButton = memo(() => {
     <MfIconLabelButton
       iconRef={ref}
       icon={'ri-menu-line'}
-      onClick={handleMenuClick}
+      onMouseDown={handleMenuClick}
+      onClick={preventMenuButtonClick}
       tooltipProps={{ title: t('action.more') }}
       label={t('common.menu')}
     />

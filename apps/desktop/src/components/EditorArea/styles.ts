@@ -30,6 +30,7 @@ export const Container = styled.div`
 
 export const TabItem = styled.div<TabItemProps>`
   display: flex;
+  flex: 0 0 auto;
   justify-content: center;
   align-items: center;
   position: relative;
@@ -37,11 +38,14 @@ export const TabItem = styled.div<TabItemProps>`
   padding-left: ${(props) => props.theme.spaceXl};
   padding-right: ${(props) => props.theme.spaceXs};
   font-size: ${(props) => props.theme.fontXs};
-  border-left: 1px solid ${(props) => props.theme.borderColor};
   background-color: ${(props) =>
     props.active ? props.theme.editorTabActiveBgColor : props.theme.editorTabBgColor};
+  color: ${(props) => (props.active ? props.theme.primaryFontColor : props.theme.labelFontColor)};
   border-bottom: 2px solid
     ${(props) => (props.active ? props.theme.editorTabActiveBgColor : props.theme.borderColor)};
+  border-left: 0 !important;
+  outline: none;
+  box-shadow: none;
   box-sizing: border-box;
   white-space: nowrap;
   cursor: pointer;
@@ -50,11 +54,29 @@ export const TabItem = styled.div<TabItemProps>`
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Edge, IE */
 
-  &:first-child {
-    border-left: none;
+  &::before,
+  &::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  &:focus,
+  &:focus-visible,
+  &:active {
+    border-left: 0 !important;
+    outline: none;
+    box-shadow: none;
+  }
+
+  .tab-title {
+    max-width: 160px;
+    min-width: 24px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .close {
+    flex: 0 0 auto;
     cursor: pointer;
     opacity: 0;
   }
@@ -71,11 +93,33 @@ type DotProps = {
 }
 
 export const Dot = styled.div<DotProps>`
-  width: 6px;
-  height: 6px;
+  position: relative;
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
-  background-color: ${(props) => props.color || props.theme.warnColor};
+  background-color: transparent;
   margin: 0 0.25rem;
+  cursor: pointer;
+
+  &::before {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: ${(props) => props.color || props.theme.warnColor};
+    content: '';
+  }
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
 `
 
 interface TabItemProps {

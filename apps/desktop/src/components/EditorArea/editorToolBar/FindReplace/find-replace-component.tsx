@@ -1,11 +1,29 @@
-import { Flex } from 'antd'
 import { type FC } from 'react'
 import type { EditorContext } from 'rme'
+import styled from 'styled-components'
 import { FindController } from './find-controller'
 import { FindInput } from './find-input'
 import { ReplaceController } from './replace-controller'
 import { ReplaceInput } from './replace-input'
 import { useFindReplace } from './use-find-replace'
+
+const Panel = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  > * + * {
+    margin-top: 5px;
+  }
+`
+
+const Row = styled.div`
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto;
+  gap: 5px 8px;
+  align-items: center;
+  min-width: 0;
+`
 
 export interface FindReplaceComponentProps {
   onDismiss?: () => void
@@ -22,6 +40,7 @@ export const FindReplaceComponent: FC<FindReplaceComponentProps> = ({ onDismiss,
     replacement,
     setReplacement,
     toggleCaseSensitive,
+    find,
     findNext,
     findPrev,
     stopFind,
@@ -30,9 +49,15 @@ export const FindReplaceComponent: FC<FindReplaceComponentProps> = ({ onDismiss,
   } = useFindReplace(editorCtx)
 
   return (
-    <Flex gap={8} vertical wrap={false}>
-      <Flex gap={4} wrap={false}>
-        <FindInput query={query} setQuery={setQuery} total={total} activeIndex={activeIndex} />
+    <Panel>
+      <Row>
+        <FindInput
+          query={query}
+          setQuery={setQuery}
+          onFind={find}
+          total={total}
+          activeIndex={activeIndex}
+        />
         <FindController
           findPrev={findPrev}
           findNext={findNext}
@@ -41,11 +66,11 @@ export const FindReplaceComponent: FC<FindReplaceComponentProps> = ({ onDismiss,
           stopFind={stopFind}
           onDismiss={onDismiss}
         />
-      </Flex>
-      <Flex gap={4} wrap={false}>
+      </Row>
+      <Row>
         <ReplaceInput replacement={replacement} setReplacement={setReplacement} />
         <ReplaceController replace={replace} replaceAll={replaceAll} />
-      </Flex>
-    </Flex>
+      </Row>
+    </Panel>
   )
 }

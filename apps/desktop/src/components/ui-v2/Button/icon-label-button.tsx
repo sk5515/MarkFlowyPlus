@@ -8,6 +8,7 @@ interface MfIconLabelButtonProps {
   label?: string
   className?: string
   onClick: (e?: React.MouseEvent<HTMLElement>) => void
+  onMouseDown?: (e?: React.MouseEvent<HTMLElement>) => void
   iconRef?: React.RefObject<any>
   tooltipProps?: Omit<TooltipProps, 'children'> & {
     style?: React.CSSProperties
@@ -28,6 +29,7 @@ const Wrapper = styled.div`
   font-size: ${(props) => props.theme.fontXs};
   gap: 4px;
   cursor: pointer;
+  color: ${(props) => props.theme.primaryFontColor};
   outline: none;
   box-shadow: none;
   transition: none;
@@ -53,6 +55,7 @@ export const MfIconLabelButton = (props: MfIconLabelButtonProps) => {
   const {
     label,
     onClick,
+    onMouseDown,
     tooltipProps,
     iconRef,
     disabled = false,
@@ -62,7 +65,7 @@ export const MfIconLabelButton = (props: MfIconLabelButtonProps) => {
   const iconCls = classNames('btn-icon', icon)
 
   const content = (
-    <Wrapper onClick={disabled ? undefined : onClick}>
+    <Wrapper onMouseDown={disabled ? undefined : onMouseDown} onClick={disabled ? undefined : onClick}>
       <i ref={iconRef} className={iconCls}></i>
       {label && <span className='icon-label'>{label}</span>}
     </Wrapper>

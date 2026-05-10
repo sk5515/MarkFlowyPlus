@@ -1,4 +1,5 @@
 import { TaskList } from '@/components/TaskList/TaskList'
+import { EditorViewModeButtons } from '@/components/EditorArea/EditorViewModeButtons'
 import { currentWindow } from '@/services/windows'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { EditorCount } from '../StatusBar/EditorCount'
@@ -50,6 +51,7 @@ export default function TitleBar() {
         <CenterMenu />
         <LayoutLeftBtn />
         <LayoutRightBtn />
+        <EditorViewModeButtons />
       </LeftContainer>
 
       <CenterDragRegion onMouseDown={startDrag} onDoubleClick={toggleMaximize} />

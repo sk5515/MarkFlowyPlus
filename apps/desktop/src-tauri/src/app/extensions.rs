@@ -1,10 +1,9 @@
 use super::conf;
-use crate::fc::{create_file, exists};
-use download_npm;
+use crate::fc::exists;
 use serde::{Deserialize, Serialize};
 use std::{
     fs::create_dir,
-    path::{self, PathBuf},
+    path::PathBuf,
     vec,
 };
 
@@ -24,7 +23,6 @@ pub struct AppExtensions {
 pub const APP_EXTENSIONS_PATH: &str = "extensions";
 
 fn build_extension(path: PathBuf) -> Option<Extension> {
-    println!("build_extension: {:?}", path);
     let pkg_path = path.join("package.json");
     let script_file_path = path.join("index.js");
 
@@ -61,7 +59,7 @@ impl AppExtensions {
 
     pub async fn init(mut self) -> Self {
         if !exists(&Self::dir_path()) {
-            create_dir(&Self::dir_path());
+            let _ = create_dir(&Self::dir_path());
         }
 
         // let _ = &Self::downloadBuiltInExtensions(self.clone()).await;
@@ -86,23 +84,6 @@ impl AppExtensions {
         }
 
         self.extensions = extensions;
-
-        self
-    }
-
-    pub async fn downloadBuiltInExtensions(self) -> Self {
-        if exists(&Self::dir_path().join("markflowy-theme-template")) {
-            return self;
-        }
-
-        let _ = download_npm::download(
-            "markflowy-theme-template",
-            download_npm::DownloadOptions {
-                untar: true,
-                dest_path: Self::dir_path().to_str().unwrap().to_string(),
-            },
-        )
-        .await;
 
         self
     }

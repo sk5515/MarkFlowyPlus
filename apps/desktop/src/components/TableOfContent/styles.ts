@@ -1,4 +1,4 @@
-import { darken, ScThemeProps } from '@markflowy/theme'
+import { ScThemeProps } from '@markflowy/theme'
 import styled, { css } from 'styled-components'
 import type { ITocListProps } from './type'
 
@@ -69,7 +69,7 @@ export const TocDiv = styled.div<TocDivProps>`
   padding-bottom: 0.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 0.8rem;
+  font-size: ${(props) => props.theme.fontSm};
   box-sizing: border-box;
 
   .toc-list {
@@ -251,10 +251,6 @@ export const TocDiv = styled.div<TocDivProps>`
 
       ${tocListExpandedAlign};
 
-      .toc-link__chapter {
-        white-space: nowrap;
-        word-break: nowrap;
-      }
     `}
 
   ${(props) =>
@@ -272,7 +268,6 @@ export const TocDiv = styled.div<TocDivProps>`
 
         ${tocListExpandedAlign};
 
-        .toc-link__chapter,
         .toc-link__title {
           opacity: 1;
           transform: translateX(0);
@@ -330,15 +325,6 @@ export const TocLink = styled.a<ITocListProps & ScThemeProps>`
       }
     `}
 
-  & .toc-link__chapter {
-    margin-right: ${(props) => props.theme.spaceXs};
-    text-align: right;
-    color: ${(props) =>
-      props.active ? props.theme.accentColor : darken(props.theme.accentColor!, 0.2)};
-    font-weight: bold;
-  }
-
-  & .toc-link__chapter,
   & .toc-link__title {
     overflow: hidden;
     text-overflow: ellipsis;

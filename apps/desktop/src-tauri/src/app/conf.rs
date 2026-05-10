@@ -2,7 +2,7 @@ use crate::{fc::exists, APP_DIR};
 use etcetera::{choose_app_strategy, AppStrategy, AppStrategyArgs};
 use serde_json::Value;
 use std::{
-    collections::{BTreeMap, HashMap},
+    collections::BTreeMap,
     path::PathBuf,
 };
 use tauri::{AppHandle, Manager, Theme};
@@ -30,27 +30,9 @@ pub_struct!(AppConf {
     language: Option<String>,
     auto_update: Option<bool>,
     webview_zoom: Option<String>,
-    copilot_provider: Option<String>,
-    copilot_model: Option<String>,
-    copilot_enabled: Option<bool>,
     editor_full_width: Option<bool>,
     editor_root_font_size: Option<u32>,
     editor_root_line_height: Option<String>,
-    extensions_chatgpt_apibase: Option<String>,
-    extensions_chatgpt_apikey: Option<String>,
-    extensions_chatgpt_models: Option<String>,
-    extensions_chatgpt_request_headers: Option<HashMap<String, String>>,
-    extensions_deepseek_apibase: Option<String>,
-    extensions_deepseek_apikey: Option<String>,
-    extensions_deepseek_models: Option<String>,
-    extensions_deepseek_request_headers: Option<HashMap<String, String>>,
-    extensions_ollama_apibase: Option<String>,
-    extensions_ollama_models: Option<String>,
-    extensions_ollama_request_headers: Option<HashMap<String, String>>,
-    extensions_google_apibase: Option<String>,
-    extensions_google_models: Option<String>,
-    extensions_google_apikey: Option<String>,
-    extensions_google_request_headers: Option<HashMap<String, String>>,
     autosave: Option<bool>,
     autosave_interval: Option<u32>,
     editor_root_font_family: Option<String>,
@@ -130,43 +112,25 @@ impl AppConf {
     pub fn new() -> Self {
         Self {
             theme: Some(DEFAULT_THEME.to_string()),
-            language: Some("en".to_string()),
+            language: Some("cn".to_string()),
             auto_update: Some(false),
             webview_zoom: Some("1.0".to_string()),
-            copilot_provider: Some("".to_string()),
-            copilot_model: Some("".to_string()),
-            copilot_enabled: Some(false),
             editor_full_width: Some(false),
             editor_root_font_size: Some(15),
             editor_root_line_height: Some("1.6".to_string()),
             md_editor_default_mode: Some("wysiwyg".to_string()),
-            autosave: Some(false),
+            autosave: Some(true),
             autosave_interval: Some(2000),
             editor_root_font_family: Some("Open Sans".to_string()),
             editor_code_font_family: Some("Fira Code".to_string()),
             wysiwyg_editor_spellcheck: Some(false),
             source_code_editor_spellcheck: Some(false),
             wysiwyg_editor_codemirror_line_wrap: Some(false),
-            extensions_chatgpt_apibase: Some("".to_string()),
-            extensions_chatgpt_models: Some("gpt-3.5-turbo,gpt-4-32k,gpt-4".to_string()),
-            extensions_chatgpt_apikey: Some("".to_string()),
-            extensions_chatgpt_request_headers: Some(HashMap::new()),
-            extensions_deepseek_models: Some("deepseek-chat,deepseek-reasoner".to_string()),
-            extensions_deepseek_apibase: Some("".to_string()),
-            extensions_deepseek_apikey: Some("".to_string()),
-            extensions_deepseek_request_headers: Some(HashMap::new()),
-            extensions_ollama_models: Some("llama3.3".to_string()),
-            extensions_ollama_apibase: Some("".to_string()),
-            extensions_ollama_request_headers: Some(HashMap::new()),
-            extensions_google_models: Some("gemini-2.5-flash".to_string()),
-            extensions_google_apibase: Some("".to_string()),
-            extensions_google_apikey: Some("".to_string()),
-            extensions_google_request_headers: Some(HashMap::new()),
-            when_paste_image: Some("do_nothing".to_string()),
+            when_paste_image: Some("save_to_file_relative".to_string()),
             paste_image_save_absolute_path: None,
             paste_image_save_relative_path: Some("assets/images".to_string()),
             paste_image_save_relative_path_rule: Some("${documentPath}/assets".to_string()),
-            when_upload_image: Some("save_to_local_absolute".to_string()),
+            when_upload_image: Some("save_to_file_relative".to_string()),
             upload_image_save_absolute_path: Some(
                 app_root()
                     .join("assets/images")
@@ -236,7 +200,19 @@ impl AppConf {
      *
      * Generally used to be compatible with the original config when versions are different.
      */
-    pub fn merge_conf(mut self, oldconf: AppConf, app: &AppHandle) -> Self {
+    pub fn merge_conf(mut self, mut oldconf: AppConf, app: &AppHandle) -> Self {
+        if oldconf.when_paste_image.as_deref() == Some("do_nothing") {
+            oldconf.when_paste_image = self.when_paste_image.clone();
+        }
+
+        if oldconf.when_upload_image.as_deref() == Some("save_to_local_absolute") {
+            oldconf.when_upload_image = self.when_upload_image.clone();
+        }
+
+        if oldconf.autosave == Some(false) {
+            oldconf.autosave = self.autosave;
+        }
+
         merge_options!(
             self,
             oldconf,
@@ -245,9 +221,6 @@ impl AppConf {
             autosave,
             auto_update,
             webview_zoom,
-            copilot_provider,
-            copilot_model,
-            copilot_enabled,
             editor_full_width,
             editor_root_font_size,
             editor_root_line_height,
@@ -258,21 +231,6 @@ impl AppConf {
             wysiwyg_editor_spellcheck,
             source_code_editor_spellcheck,
             autosave_interval,
-            extensions_chatgpt_apibase,
-            extensions_chatgpt_apikey,
-            extensions_chatgpt_models,
-            extensions_chatgpt_request_headers,
-            extensions_deepseek_models,
-            extensions_deepseek_apibase,
-            extensions_deepseek_apikey,
-            extensions_deepseek_request_headers,
-            extensions_ollama_models,
-            extensions_ollama_apibase,
-            extensions_ollama_request_headers,
-            extensions_google_models,
-            extensions_google_apibase,
-            extensions_google_apikey,
-            extensions_google_request_headers,
             when_paste_image,
             paste_image_save_absolute_path,
             paste_image_save_relative_path,

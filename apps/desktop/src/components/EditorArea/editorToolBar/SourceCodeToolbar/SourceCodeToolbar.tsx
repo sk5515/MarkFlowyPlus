@@ -5,12 +5,12 @@ import { useTranslation } from 'react-i18next'
 import { EditorViewType } from 'rme'
 import styled from 'styled-components'
 import { ToolbarSection, usePriorityHidden } from '../responsive'
-import { AIButton } from '../WysiwygToolbar/components/AIButton'
+import { SearchToolbarButton } from '../SearchToolbarButton'
 import { CodeCommandButton } from './CodeCommandButton'
-import { SourceCodeMenuButton } from './SourceCodeMenuButton'
 
 const ToolbarWrapper = styled.div`
   background-color: ${({ theme }) => theme.bgColor};
+  color: ${({ theme }) => theme.primaryFontColor};
   width: 100%;
   padding: 4px 8px;
   border-bottom: 1px solid ${({ theme }) => theme.borderColor};
@@ -31,6 +31,14 @@ const Divider = styled.div`
   flex-shrink: 0;
 `
 
+const ToolbarRight = styled.div`
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-left: 8px;
+`
+
 export const SourceCodeToolbar: FC = () => {
   const { activeId } = useEditorStore()
   const { getEditorViewType } = useEditorViewTypeStore()
@@ -39,7 +47,6 @@ export const SourceCodeToolbar: FC = () => {
   const viewType = activeId ? getEditorViewType(activeId) : EditorViewType.WYSIWYG
 
   const sections = useMemo(() => [
-    { id: 'common', priority: 100 },
     { id: 'history', priority: 90 },
     { id: 'headings', priority: 60 },
     { id: 'formatting', priority: 50 },
@@ -55,13 +62,7 @@ export const SourceCodeToolbar: FC = () => {
 
   return (
     <ToolbarWrapper ref={containerRef}>
-      <ToolbarSection id="common" registerWidth={registerItemWidth} hidden={hiddenIds.has('common')}>
-        <SourceCodeMenuButton />
-        <AIButton />
-      </ToolbarSection>
-
       <ToolbarSection id="history" registerWidth={registerItemWidth} hidden={hiddenIds.has('history')}>
-        <Divider />
         <CodeCommandButton
           commandName='undo'
           icon='ri-arrow-go-back-line'
@@ -157,6 +158,9 @@ export const SourceCodeToolbar: FC = () => {
           label={t('toolbar.taskList') || 'Task List'}
         />
       </ToolbarSection>
+      <ToolbarRight>
+        <SearchToolbarButton label={t('search.text') || 'Search'} />
+      </ToolbarRight>
     </ToolbarWrapper>
   )
 }

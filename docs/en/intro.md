@@ -9,7 +9,6 @@ Currently, MarkFlowy is in the beta stage, and it is recommended to use it with 
 
 ## Feature
 
-- **Built-in AI**. Currently, it supports one click export of conversations, translation of articles to any language, and obtaining article abstracts. It also supports large models such as `DeepSeek` and `Chatgpt` to make them your intelligent assistants.
 - **Super lightweight**. The MarkFlowy is based on tauri and has a volume of less than 10MB and better performance.
 - **High availability**. MarkFlowy uses the remirror editor, which not only provides high scalability, but also has a great editing experience. And, MarkFlowy supports multiple editing modes, such as `source code`, `wysiwyg`.
 - **Custom Theme**. MarkFlowy supports custom themes, and you can also share your themes with others.
@@ -42,4 +41,3 @@ You can read [CONTRIBUTING](./Community/CONTRIBUTING) to know how to start the p
 ## Support
 
 MarkFlowy is completely and permanently open source, if you want to support MarkFlowy, you can `star` this project. This will give me great support and help, love you.
-

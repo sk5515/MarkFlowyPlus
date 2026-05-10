@@ -8,6 +8,17 @@ export const showContextMenu = (params: IShowContextMenuParams) => {
   show(params)
 }
 
+export const toggleContextMenu = (params: IShowContextMenuParams) => {
+  const { open, show, hide } = useContextMenuStore.getState()
+
+  if (open) {
+    hide()
+    return
+  }
+
+  show(params)
+}
+
 export const hideContextMenu = () => {
   useContextMenuStore.getState().hide()
 }

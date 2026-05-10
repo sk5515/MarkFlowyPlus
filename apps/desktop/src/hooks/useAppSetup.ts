@@ -1,4 +1,3 @@
-import useAiChatStore from '@/extensions/ai/useAiChatStore'
 import bus from '@/helper/eventBus'
 import { loadLocalThemeCss } from '@/helper/extensions'
 import { getFileObject, getFileObjectByPath, getSaveOpenedEditorEntries } from '@/helper/files'
@@ -207,7 +206,6 @@ const listener = (event: MessageEvent) => {
 
 const useMainStoreSetup = () => {
   useAppSettingStore()
-  useAiChatStore()
 }
 
 const appSetup = once(async function () {
@@ -220,7 +218,9 @@ const appSetup = once(async function () {
 
   appThemeExtensionsSetup(settingData.theme)
   i18nInit({ lng: settingData.language })
-  checkUpdate({ install: settingData.auto_update })
+  window.setTimeout(() => {
+    checkUpdate({ install: settingData.auto_update })
+  }, 1500)
 
   // Initialize zoom level based on webview_zoom setting
   if (settingData.webview_zoom) {
@@ -228,7 +228,9 @@ const appSetup = once(async function () {
     webview.setZoom(Number(settingData.webview_zoom))
   }
 
-  await appWorkspaceSetup()
+  window.setTimeout(() => {
+    appWorkspaceSetup()
+  }, 0)
 
   return settingData
 })

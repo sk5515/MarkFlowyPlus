@@ -15,7 +15,7 @@ import {
 } from '@/helper/filesys'
 import { FileTypeConfig } from '@/helper/fileTypeHandler'
 import { logger } from '@/helper/logger'
-import { canvasToPdfBytes } from '@/helper/pdf'
+import { getHeadingValue } from '@/helper/string'
 import { useEditorKeybindingStore } from '@/hooks/useKeyboard'
 import { useCommandStore, useEditorStateStore, useEditorStore } from '@/stores'
 import useAppSettingStore from '@/stores/useAppSettingStore'
@@ -24,9 +24,11 @@ import useEditorViewTypeStore from '@/stores/useEditorViewTypeStore'
 import * as Sentry from '@sentry/react'
 import { invoke } from '@tauri-apps/api/core'
 import { save } from '@tauri-apps/plugin-dialog'
+import { revealItemInDir } from '@tauri-apps/plugin-opener'
+import { EditorView as CodeMirrorEditorView } from '@codemirror/view'
 import classNames from 'classnames'
-import html2canvas from 'html2canvas'
 import { debounce, DebouncedFunc, throttle } from 'lodash'
+import { TextSelection } from 'prosemirror-state'
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMount, useUnmount } from 'react-use'
@@ -61,6 +63,29 @@ type HeadingIndicatorState = {
   level: number
   left: number
   top: number
+}
+
+type EditorSwitchPosition = {
+  lineNumber: number
+  column: number
+  lineText: string
+  blockIndex: number
+  heading?: EditorSwitchHeadingAnchor
+}
+
+type EditorSwitchHeadingAnchor = {
+  level: number
+  text: string
+  index: number
+}
+
+type SourceHeadingAnchor = EditorSwitchHeadingAnchor & {
+  lineNumber: number
+  lineFrom: number
+}
+
+type WysiwygHeadingAnchor = EditorSwitchHeadingAnchor & {
+  pos: number
 }
 
 enum TextEditorStatus {
@@ -112,6 +137,129 @@ function TextEditor(props: TextEditorProps) {
   const editorWrapperRef = useRef<HTMLDivElement>(null)
   const editorRef = useRef<EditorRef>(null)
   const editorContextRef = useRef<EditorChangeEventParams>(null)
+  const switchPositionRef = useRef<EditorSwitchPosition | null>(null)
+
+  const normalizeLineText = useCallback((line: string) => {
+    return line
+      .replace(/^\s{0,3}(#{1,6})\s+/, '')
+      .replace(/^\s*([-+*]|\d+[.)])\s+(\[[ xX]\]\s+)?/, '')
+      .replace(/^\s{0,3}>\s?/, '')
+      .replace(/^\s*`{3,}.*/, '')
+      .replace(/\*\*|__|\*|_|`|~~|\[|\]\([^)]*\)/g, '')
+      .trim()
+  }, [])
+
+  const normalizeHeadingText = useCallback((heading: string) => {
+    return getHeadingValue(heading)
+      .replace(/\s+#+\s*$/, '')
+      .trim()
+  }, [])
+
+  const getMarkdownSource = useCallback(() => {
+    return sourceCodeCodemirrorViewMap.get(curFile.id)?.cm.state.doc.toString() ||
+      getEditorContent(curFile.id) ||
+      content ||
+      ''
+  }, [content, curFile.id, getEditorContent])
+
+  const getSourceHeadingAnchors = useCallback((): SourceHeadingAnchor[] => {
+    const sourceCodeView = sourceCodeCodemirrorViewMap.get(curFile.id)?.cm
+    const source = sourceCodeView?.state.doc.toString() || getMarkdownSource()
+    const lines = source.split('\n')
+    const headings: SourceHeadingAnchor[] = []
+    let offset = 0
+
+    lines.forEach((lineText, lineIndex) => {
+      const match = lineText.match(/^\s{0,3}(#{1,6})\s+(.+?)\s*$/)
+      if (match) {
+        headings.push({
+          level: match[1].length,
+          text: normalizeHeadingText(lineText),
+          index: headings.length,
+          lineNumber: lineIndex + 1,
+          lineFrom: sourceCodeView?.state.doc.line(lineIndex + 1).from ?? offset,
+        })
+      }
+
+      offset += lineText.length + 1
+    })
+
+    return headings
+  }, [curFile.id, getMarkdownSource, normalizeHeadingText])
+
+  const getWysiwygHeadingAnchors = useCallback(
+    (targetDelegate: ReturnType<typeof createDelegate> = delegate): WysiwygHeadingAnchor[] => {
+      const view = targetDelegate.manager.view
+      const headings: WysiwygHeadingAnchor[] = []
+
+      view.state.doc.descendants((node, pos) => {
+        if (node.type.name === 'heading') {
+          headings.push({
+            level: node.attrs.level as number,
+            text: normalizeHeadingText(node.textContent),
+            index: headings.length,
+            pos,
+          })
+          return false
+        }
+
+        return true
+      })
+
+      return headings
+    },
+    [delegate, normalizeHeadingText],
+  )
+
+  const findMatchingHeading = useCallback(
+    <T extends EditorSwitchHeadingAnchor>(headings: T[], anchor?: EditorSwitchHeadingAnchor) => {
+      if (!anchor || headings.length === 0) {
+        return null
+      }
+
+      return (
+        headings.find((heading) => heading.index === anchor.index) ||
+        headings.find(
+          (heading) => heading.level === anchor.level && heading.text === anchor.text,
+        ) ||
+        headings[Math.min(anchor.index, headings.length - 1)] ||
+        null
+      )
+    },
+    [],
+  )
+
+  const getSourceBlockIndexFromLine = useCallback((lineNumber: number) => {
+    return getMarkdownSource()
+      .split('\n')
+      .slice(0, lineNumber)
+      .filter((line) => normalizeLineText(line).length > 0)
+      .length
+  }, [getMarkdownSource, normalizeLineText])
+
+  const getSourceLineByBlockIndex = useCallback((blockIndex: number) => {
+    const lines = getMarkdownSource().split('\n')
+    let nonEmptyIndex = 0
+
+    for (let index = 0; index < lines.length; index += 1) {
+      if (normalizeLineText(lines[index] || '').length === 0) {
+        continue
+      }
+
+      nonEmptyIndex += 1
+      if (nonEmptyIndex >= blockIndex) {
+        return {
+          lineNumber: index + 1,
+          lineText: lines[index] || '',
+        }
+      }
+    }
+
+    return {
+      lineNumber: Math.min(Math.max(1, blockIndex), Math.max(1, lines.length)),
+      lineText: lines[Math.min(Math.max(1, blockIndex), Math.max(1, lines.length)) - 1] || '',
+    }
+  }, [getMarkdownSource, normalizeLineText])
 
   const updateCodeBlockMaxWidth = useCallback(() => {
     const wrapper = editorWrapperRef.current
@@ -496,6 +644,170 @@ function TextEditor(props: TextEditorProps) {
 
   const editorTypeSwitchingRef = useRef(false)
 
+  const captureSwitchPosition = useCallback((): EditorSwitchPosition | null => {
+    const currentType = editorRef.current?.getType()
+
+    if (currentType === EditorViewType.SOURCECODE) {
+      const sourceCodeView = sourceCodeCodemirrorViewMap.get(curFile.id)?.cm
+      if (!sourceCodeView) {
+        return null
+      }
+
+      const head = sourceCodeView.state.selection.main.head
+      const line = sourceCodeView.state.doc.lineAt(head)
+      const heading = [...getSourceHeadingAnchors()]
+        .reverse()
+        .find((heading) => heading.lineNumber <= line.number)
+
+      return {
+        lineNumber: line.number,
+        column: head - line.from,
+        lineText: line.text,
+        blockIndex: getSourceBlockIndexFromLine(line.number),
+        heading,
+      }
+    }
+
+    if (currentType === EditorViewType.WYSIWYG) {
+      const view = delegate.manager.view
+      const selectionFrom = view.state.selection.from
+      const heading = [...getWysiwygHeadingAnchors(delegate)]
+        .reverse()
+        .find((heading) => heading.pos <= selectionFrom)
+      const selectedBlocks: Array<{ pos: number; text: string; blockIndex: number }> = []
+      let blockIndex = 0
+
+      view.state.doc.descendants((node, pos) => {
+        if (node.isTextblock) {
+          blockIndex += 1
+        }
+
+        if (selectedBlocks.length === 0 && node.isTextblock && selectionFrom >= pos && selectionFrom <= pos + node.nodeSize) {
+          selectedBlocks.push({
+            pos,
+            text: node.textContent,
+            blockIndex,
+          })
+          return false
+        }
+        return true
+      })
+
+      const selectedBlock = selectedBlocks[0]
+      const selectedText = selectedBlock?.text || ''
+      const sourceLine = getSourceLineByBlockIndex(selectedBlock?.blockIndex || 1)
+
+      return {
+        lineNumber: sourceLine.lineNumber,
+        column: Math.max(0, selectionFrom - (selectedBlock?.pos || 0) - 1),
+        lineText: sourceLine.lineText || selectedText,
+        blockIndex: selectedBlock?.blockIndex || 1,
+        heading,
+      }
+    }
+
+    return null
+  }, [
+    curFile.id,
+    delegate,
+    getSourceBlockIndexFromLine,
+    getSourceHeadingAnchors,
+    getSourceLineByBlockIndex,
+    getWysiwygHeadingAnchors,
+  ])
+
+  const restoreSourceCodePosition = useCallback((position: EditorSwitchPosition) => {
+    const sourceCodeView = sourceCodeCodemirrorViewMap.get(curFile.id)?.cm
+    if (!sourceCodeView) {
+      return false
+    }
+
+    const heading = findMatchingHeading(getSourceHeadingAnchors(), position.heading)
+    if (heading) {
+      sourceCodeView.dispatch({
+        selection: {
+          anchor: heading.lineFrom,
+          head: heading.lineFrom,
+        },
+        effects: CodeMirrorEditorView.scrollIntoView(heading.lineFrom, {
+          y: 'start',
+          yMargin: 16,
+        }),
+      })
+      sourceCodeView.focus()
+      return true
+    }
+
+    const lineInfo = getSourceLineByBlockIndex(position.blockIndex)
+    const safeLineNumber = Math.min(Math.max(1, lineInfo.lineNumber || position.lineNumber), sourceCodeView.state.doc.lines)
+    const line = sourceCodeView.state.doc.line(safeLineNumber)
+    const column = Math.min(line.length, Math.max(0, position.column))
+    const targetPos = line.from + column
+
+    sourceCodeView.dispatch({
+      selection: {
+        anchor: targetPos,
+        head: targetPos,
+      },
+      effects: CodeMirrorEditorView.scrollIntoView(targetPos, {
+        y: 'center',
+      }),
+    })
+    sourceCodeView.focus()
+    return true
+  }, [curFile.id, findMatchingHeading, getSourceHeadingAnchors, getSourceLineByBlockIndex])
+
+  const restoreWysiwygPosition = useCallback(
+    (position: EditorSwitchPosition, nextDelegate?: ReturnType<typeof createDelegate>) => {
+      const targetDelegate = nextDelegate ?? delegate
+      const view = targetDelegate.manager.view
+      const heading = findMatchingHeading(getWysiwygHeadingAnchors(targetDelegate), position.heading)
+
+      if (heading) {
+        view.dispatch(
+          view.state.tr
+            .setSelection(TextSelection.create(view.state.doc, heading.pos + 1))
+            .scrollIntoView(),
+        )
+        view.focus()
+        return true
+      }
+
+      let targetPos: number | null = null
+      let textBlockIndex = 0
+
+      view.state.doc.descendants((node, pos) => {
+        if (!node.isTextblock || targetPos !== null) {
+          return targetPos === null
+        }
+
+        textBlockIndex += 1
+        if (textBlockIndex >= position.blockIndex) {
+          targetPos = pos + 1 + Math.min(position.column, node.textContent.length)
+          return false
+        }
+
+        return true
+      })
+
+      if (targetPos === null) {
+        return false
+      }
+
+      const resolvedPos = view.state.doc.resolve(
+        Math.min(Math.max(1, targetPos), view.state.doc.content.size),
+      )
+      view.dispatch(
+        view.state.tr
+          .setSelection(TextSelection.near(resolvedPos))
+          .scrollIntoView(),
+      )
+      view.focus()
+      return true
+    },
+    [delegate, findMatchingHeading, getWysiwygHeadingAnchors],
+  )
+
   const focusEditorAfterTypeSwitch = useCallback(
     (viewType: EditorViewType, nextDelegate?: ReturnType<typeof createDelegate>) => {
       let retryCount = 0
@@ -508,12 +820,20 @@ function TextEditor(props: TextEditorProps) {
         if (viewType === EditorViewType.SOURCECODE) {
           const sourceCodeView = sourceCodeCodemirrorViewMap.get(curFile.id)?.cm
           if (sourceCodeView) {
+            const position = switchPositionRef.current
+            if (position) {
+              restoreSourceCodePosition(position)
+            }
             sourceCodeView.focus()
             return
           }
         }
 
         const targetDelegate = nextDelegate ?? delegate
+        const position = switchPositionRef.current
+        if (viewType === EditorViewType.WYSIWYG && position) {
+          restoreWysiwygPosition(position, targetDelegate)
+        }
         targetDelegate.manager.view.focus()
 
         const editable = editorWrapperRef.current?.querySelector<HTMLElement>(
@@ -532,7 +852,7 @@ function TextEditor(props: TextEditorProps) {
 
       setTimeout(retryFocus, 0)
     },
-    [active, curFile.id, delegate],
+    [active, curFile.id, delegate, restoreSourceCodePosition, restoreWysiwygPosition],
   )
 
   useEffect(() => {
@@ -545,6 +865,12 @@ function TextEditor(props: TextEditorProps) {
         if (editorRef.current?.getType() === payload) {
           return
         }
+
+        const currentType = editorRef.current?.getType()
+        switchPositionRef.current =
+          currentType !== EditorViewType.PREVIEW && payload !== EditorViewType.PREVIEW
+            ? captureSwitchPosition()
+            : null
 
         editorTypeSwitchingRef.current = true
         bus.emit(EVENT.app_save, {
@@ -581,6 +907,9 @@ function TextEditor(props: TextEditorProps) {
           },
           onFinally: () => {
             editorTypeSwitchingRef.current = false
+            if (payload === EditorViewType.PREVIEW) {
+              switchPositionRef.current = null
+            }
           },
         })
       }
@@ -600,9 +929,18 @@ function TextEditor(props: TextEditorProps) {
     getEditorContent,
     debounceRefreshToc,
     focusEditorAfterTypeSwitch,
+    captureSwitchPosition,
   ])
 
   useEffect(() => {
+    const revealExportedFile = async (path: string) => {
+      try {
+        await revealItemInDir(path)
+      } catch (error) {
+        logger.error('Failed to reveal exported file:', error)
+      }
+    }
+
     const exportImageHandler = async () => {
       if (!active) {
         return
@@ -614,24 +952,17 @@ function TextEditor(props: TextEditorProps) {
       }).then(async (path) => {
         if (!path) return
 
-        const n = toast.loading(t('contextmenu.editor_tab.export_image') + '...')
-
-        html2canvas(document.getElementById(id) as HTMLElement).then((canvas) => {
-          // to base 64
+        try {
+          const { default: html2canvas } = await import('html2canvas')
+          const canvas = await html2canvas(document.getElementById(id) as HTMLElement)
           const image = canvas.toDataURL('image/jpg')
-
           const data = canvasDataToBinary(image)
 
-          invoke('write_u8_array_to_file', { filePath: path, content: data })
-            .then(() => {
-              toast.dismiss(n)
-              toast.success('Exported to ' + path)
-            })
-            .catch((error) => {
-              toast.dismiss(n)
-              toast.error(String(error))
-            })
-        })
+          await invoke('write_u8_array_to_file', { filePath: path, content: data })
+          await revealExportedFile(path)
+        } catch (error) {
+          toast.error(String(error))
+        }
       })
     }
 
@@ -646,24 +977,19 @@ function TextEditor(props: TextEditorProps) {
       }).then(async (path) => {
         if (!path) return
 
-        const n = toast.loading(t('contextmenu.editor_tab.export_pdf') + '...')
-
-        html2canvas(document.getElementById(id) as HTMLElement).then((canvas) => {
+        try {
+          const [{ default: html2canvas }, { canvasToPdfBytes }] = await Promise.all([
+            import('html2canvas'),
+            import('@/helper/pdf'),
+          ])
+          const canvas = await html2canvas(document.getElementById(id) as HTMLElement)
           const data = canvasToPdfBytes(canvas)
 
-          invoke('write_u8_array_to_file', { filePath: path, content: data })
-            .then(() => {
-              toast.dismiss(n)
-              toast.success('Exported to ' + path)
-            })
-            .catch((error) => {
-              toast.dismiss(n)
-              toast.error(String(error))
-            })
-        }).catch((error) => {
-          toast.dismiss(n)
+          await invoke('write_u8_array_to_file', { filePath: path, content: data })
+          await revealExportedFile(path)
+        } catch (error) {
           toast.error(String(error))
-        })
+        }
       })
     }
 
@@ -679,7 +1005,6 @@ function TextEditor(props: TextEditorProps) {
         .then(async (path) => {
           if (!path) return
 
-          const n = toast.loading(t('contextmenu.editor_tab.export_html') + '...')
           const res = await editorRef.current?.exportHtml()
           const scStyled = document.head.querySelectorAll('style[data-styled]')
 
@@ -700,13 +1025,11 @@ function TextEditor(props: TextEditorProps) {
   ${res}
   </div>
   </body>
-  </html>
+          </html>
           `
 
-          invoke('export_html_to_path', { str: html, path }).then(() => {
-            toast.dismiss(n)
-            toast.success('Exported to ' + path)
-          })
+          await invoke('export_html_to_path', { str: html, path })
+          await revealExportedFile(path)
         })
         .catch((error) => {
           toast.error(String(error))

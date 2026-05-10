@@ -14,9 +14,9 @@ use tauri::{LogicalPosition, TitleBarStyle};
 pub fn init(app_handle: AppHandle, opened_urls: String) -> Result<(), Box<dyn std::error::Error>> {
     // 首先检查是否已经存在窗口
     if let Some(existing_window) = window_manager::get_last_opened_window(&app_handle) {
-        let script = format!("window.openedUrls = `{opened_urls}`; console.log(`[setup.rs] Updated openedUrls to: {opened_urls}`);");
+        let script = format!("window.openedUrls = `{opened_urls}`;");
         let _ = existing_window.eval(&script);
-        existing_window.emit("opened-urls", opened_urls.clone());
+        let _ = existing_window.emit("opened-urls", opened_urls.clone());
 
         return Ok(());
     }
@@ -44,9 +44,6 @@ pub fn init(app_handle: AppHandle, opened_urls: String) -> Result<(), Box<dyn st
         theme_mode, theme_mode, theme_mode, theme_mode
     ))
     .initialization_script(&format!("window.openedUrls = `{opened_urls}`"))
-    .initialization_script(&format!(
-        "console.log(`[setup.rs] window.openedUrls set to: {opened_urls}`)"
-    ))
     .title("MarkFlowyPlus")
     .resizable(true)
     .decorations(true)

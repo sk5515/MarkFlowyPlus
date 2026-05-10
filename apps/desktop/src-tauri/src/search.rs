@@ -19,8 +19,8 @@ pub mod cmd {
         options::{ContentOptions, Options},
         search::Search,
     };
-    use std::{sync::mpsc::channel, thread::spawn};
-    use tauri::{command, AppHandle, Emitter, EventTarget};
+    use std::sync::mpsc::channel;
+    use tauri::command;
 
     use super::SearchOptions;
 

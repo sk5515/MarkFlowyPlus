@@ -1,7 +1,12 @@
 import NiceModal from '@ebay/nice-modal-react'
 import isPropValid from '@emotion/is-prop-valid'
-import { useMemo } from 'react'
-import { ThemeProvider as EditorProvider } from 'rme'
+import { useEffect, useMemo } from 'react'
+import {
+  changeTheme as changeEditorTheme,
+  darkTheme as editorDarkTheme,
+  lightTheme as editorLightTheme,
+  ThemeProvider as EditorProvider,
+} from 'rme'
 import { IStyleSheetContext, StyleSheetManager, ThemeProvider } from 'styled-components'
 import { ThemeProvider as ZensThemeProvider } from 'zens'
 import { GlobalStyles } from './globalStyles'
@@ -14,10 +19,38 @@ const AppThemeProvider: React.FC<BaseComponentProps> = function ({ children }) {
   const { curTheme } = useThemeStore()
   const { settingData } = useAppSettingStore()
   const theme = curTheme?.styledConstants || {}
+  const codemirrorTheme = useMemo(() => {
+    const baseTheme =
+      curTheme.codemirrorTheme ||
+      (curTheme.mode === 'dark' ? editorDarkTheme.codemirrorTheme : editorLightTheme.codemirrorTheme)
+    const token = curTheme.styledConstants
+
+    return {
+      ...baseTheme,
+      settings: {
+        ...baseTheme.settings,
+        background: token.bgColorSecondary || token.bgColor,
+        foreground: token.primaryFontColor,
+        caret: token.primaryFontColor,
+        selection: token.accentColorFocused,
+        selectionMatch: token.accentColorFocused,
+        gutterBackground: token.bgColorSecondary || token.bgColor,
+        gutterForeground: token.labelFontColor,
+        gutterBorder: token.borderColor,
+        fontFamily: settingData.editor_code_font_family,
+      },
+    }
+  }, [
+    curTheme.codemirrorTheme,
+    curTheme.mode,
+    curTheme.styledConstants,
+    settingData.editor_code_font_family,
+  ])
 
   const themeProp = useMemo(
     () => ({
       mode: curTheme.mode,
+      codemirrorTheme,
       token: {
         ...curTheme.styledConstants,
         fontFamily: settingData.editor_root_font_family,
@@ -27,6 +60,7 @@ const AppThemeProvider: React.FC<BaseComponentProps> = function ({ children }) {
     [
       curTheme.mode,
       curTheme.styledConstants,
+      codemirrorTheme,
       settingData.editor_root_font_family,
       settingData.editor_code_font_family,
     ],
@@ -39,6 +73,10 @@ const AppThemeProvider: React.FC<BaseComponentProps> = function ({ children }) {
     }),
     [settingData.language],
   )
+
+  useEffect(() => {
+    changeEditorTheme(codemirrorTheme)
+  }, [codemirrorTheme])
 
   return (
     <StyleSheetManager shouldForwardProp={shouldForwardProp}>

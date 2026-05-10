@@ -1,19 +1,36 @@
-# build
-dist
-dist-types
-target
-
+# OS
 .DS_Store
+Thumbs.db
 
-# dependencies
-node_modules
+# Editors / IDEs
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Dependencies
+node_modules/
+**/node_modules/
 /.pnp
-.pnp.js
+.pnp.*
 
-# vitest
-coverage
-html
-
+# Yarn Berry
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
@@ -21,11 +38,38 @@ html
 !.yarn/sdks
 !.yarn/versions
 
+# Build output
+dist/
+dist-types/
+lib/
+es/
+.next/
+out/
+target/
+**/dist/
+**/dist-types/
+**/.next/
 
-.rollup.cache
+# Tauri / Rust generated files
+apps/desktop/src-tauri/gen/
+**/*.rs.bk
 
-.turbo
+# Test / coverage
+coverage/
+html/
+*.lcov
 
-.env
-.env.dev
-.env.prod
+# Caches
+.turbo/
+**/.turbo/
+.rollup.cache/
+.eslintcache
+.stylelintcache
+.vite/
+
+# Local app artifacts
+*.dmg
+*.app
+*.msi
+*.exe
+*.AppImage

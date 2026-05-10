@@ -13,8 +13,6 @@
   "mock": {
     "intro": {
       "title": "欢迎使用 MarkFlowyPlus！",
-      "ai_label": "AI 驱动：",
-      "ai_desc": "内置 Copilot、翻译、摘要功能，并支持 DeepSeek/ChatGPT 等多种主流模型。",
       "lightweight_label": "轻量化：",
       "lightweight_desc": "基于 Tauri 架构，体积小于 20MB。",
       "modes_label": "编辑模式：",
@@ -31,16 +29,18 @@
       "manager_desc": "强大的树状视图，支持全局搜索。",
       "multilingual_label": "多语言：",
       "multilingual_desc": "原生支持 5 种以上主流语言。",
-      "footer": "尽情体验编辑的乐趣吧！"
+      "footer": "尽情体验编辑的乐趣吧！",
+      "local_label": "本地优先：",
+      "local_desc": "文件保存在你的设备上，Markdown 工作流快速顺手。"
     }
   },
   "config": {
-    "description": "由 AI 驱动的下一代专业文本编辑器。"
+    "description": "专注 Markdown 创作的下一代专业文本编辑器。"
   },
   "home": {
     "hero": {
       "title": "MarkFlowyPlus",
-      "subtitle": "MarkFlowyPlus 致力于高效舒适的 Markdown 创作，\nAI 驱动的下一代专业编辑器。",
+      "subtitle": "MarkFlowyPlus 致力于高效舒适的 Markdown 创作，\n专注写作的下一代专业编辑器。",
       "description": "",
       "download": "立即下载"
     },
@@ -50,8 +50,8 @@
         "description": "支持源代码、所见即所得编辑模式，满足不同场景需求，并且支持编辑 Markdown 以外的文件，如 json、txt 等"
       },
       "feature2": {
-        "title": "内置 AI 助手",
-        "description": "集成强大的 AI 助手，支持文本生成、对话、翻译等功能，提升编辑效率"
+        "title": "高效本地工作流",
+        "description": "结合文件管理、搜索、图片处理和自定义快捷键，提升编辑效率。"
       },
       "feature3": {
         "title": "自定义主题",
@@ -79,7 +79,6 @@
     "CONTRIBUTING": "贡献指南",
     "Community": "社区准则",
     "Extension": "扩展指南",
-    "License": "许可证",
-    "UseCopilotWithOllama": "Copilot 与 Ollama 组合实践"
+    "License": "许可证"
   }
 }

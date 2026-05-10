@@ -9,7 +9,6 @@ pub fn generate_menu(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         // 获取当前焦点窗口
         if let Some(window) = get_focused_window(app) {
             let focused_window_label = window.label();
-            println!("focused_window: {}", focused_window_label);
 
             // 发送菜单事件到焦点窗口
             app.emit_to(&focused_window_label, "native:menu", menu_id)
@@ -19,16 +18,14 @@ pub fn generate_menu(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
             match menu_id {
                 "Settings" => {
                     app.emit_to(&focused_window_label, "app_openSetting", {})
-                        .map_err(|err| println!("{:?}", err))
+                        .map_err(|err| eprintln!("{:?}", err))
                         .ok();
                     app.emit_to(&focused_window_label, "native:menu", "app_openSetting")
-                        .map_err(|err| println!("{:?}", err))
+                        .map_err(|err| eprintln!("{:?}", err))
                         .ok();
                 }
                 _ => {}
             }
-        } else {
-            println!("No focused window found for menu event");
         }
     };
 
@@ -40,27 +37,27 @@ pub fn generate_menu(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
                 "MarkFlowyPlus",
                 true,
                 &[
-                    &MenuItemBuilder::new("Settings").id("Settings").build(app)?,
-                    &PredefinedMenuItem::quit(app, Some("Quit"))?,
+                    &MenuItemBuilder::new("设置").id("Settings").build(app)?,
+                    &PredefinedMenuItem::quit(app, Some("退出 MarkFlowyPlus"))?,
                 ],
             )?,
             &Submenu::with_items(
                 app,
-                "File",
+                "文件",
                 true,
-                &[&MenuItemBuilder::new("Save").id("app_save").build(app)?],
+                &[&MenuItemBuilder::new("保存").id("app_save").build(app)?],
             )?,
             &Submenu::with_items(
                 app,
-                "Edit",
+                "编辑",
                 true,
                 &[
-                    &PredefinedMenuItem::redo(app, None)?,
-                    &PredefinedMenuItem::undo(app, None)?,
-                    &PredefinedMenuItem::cut(app, None)?,
-                    &PredefinedMenuItem::copy(app, None)?,
-                    &PredefinedMenuItem::paste(app, None)?,
-                    &PredefinedMenuItem::select_all(app, None)?,
+                    &PredefinedMenuItem::redo(app, Some("重做"))?,
+                    &PredefinedMenuItem::undo(app, Some("撤销"))?,
+                    &PredefinedMenuItem::cut(app, Some("剪切"))?,
+                    &PredefinedMenuItem::copy(app, Some("复制"))?,
+                    &PredefinedMenuItem::paste(app, Some("粘贴"))?,
+                    &PredefinedMenuItem::select_all(app, Some("全选"))?,
                 ],
             )?,
             // &Submenu::with_items(

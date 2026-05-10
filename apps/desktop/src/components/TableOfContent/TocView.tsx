@@ -91,6 +91,47 @@ const getAllHeadings = (doc: ProseMirrorNode): HeadingInfo[] => {
   return headings
 }
 
+const getSourceHeadings = (codemirrorView: { cm: CodeMirrorEditorView }): SourceHeadingInfo[] => {
+  const matches = extractMatches(codemirrorView.cm)
+  const matchedHeadings: SourceHeadingInfo[] = matches.map((match) => {
+    const depth = Number(match.type.split('ATXHeading')?.[1]) || 1
+    const value = getHeadingValue(match.value)
+    const pos = match.to
+
+    return {
+      depth,
+      value,
+      pos,
+      id: `heading-${pos}`,
+    }
+  })
+
+  if (matchedHeadings.length > 0) {
+    return matchedHeadings
+  }
+
+  const doc = codemirrorView.cm.state.doc
+  const headings: SourceHeadingInfo[] = []
+
+  for (let lineNumber = 1; lineNumber <= doc.lines; lineNumber += 1) {
+    const line = doc.line(lineNumber)
+    const match = line.text.match(/^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/)
+
+    if (!match) {
+      continue
+    }
+
+    headings.push({
+      depth: match[1].length,
+      value: getHeadingValue(line.text).replace(/\s+#+\s*$/, '').trim(),
+      pos: line.from,
+      id: `heading-${line.from}`,
+    })
+  }
+
+  return headings
+}
+
 const jumpToHeading = (
   editorView: EditorView,
   headingPos: number,
@@ -251,19 +292,7 @@ export const TocView = ({ variant = 'sidebar' }: TocViewProps) => {
           }
 
           setTimeout(() => {
-            const matches = extractMatches(codemirrorView.cm)
-            const sourceHeadings: SourceHeadingInfo[] = matches.map((match) => {
-              const depth = Number(match.type.split('ATXHeading')?.[1]) || 1
-              const value = getHeadingValue(match.value)
-              const pos = match.to
-
-              return {
-                depth,
-                value,
-                pos,
-                id: `heading-${pos}`,
-              }
-            })
+            const sourceHeadings = getSourceHeadings(codemirrorView)
 
             sourceHeadingsRef.current = sourceHeadings
             setSourceScrollEl(codemirrorView.cm.scrollDOM)

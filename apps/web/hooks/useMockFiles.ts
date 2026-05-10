@@ -6,7 +6,7 @@ export const useMockFiles = () => {
   const markdownContent = `
 ##### ${t('mock.intro.title', 'Welcome to MarkFlowyPlus!')}
 
-- [x] 🧠 **${t('mock.intro.ai_label', 'AI-Powered:')}** ${t('mock.intro.ai_desc', 'Built-in translation, summary, and DeepSeek/ChatGPT support.')}
+- [x] 🔒 **${t('mock.intro.local_label', 'Local-first:')}** ${t('mock.intro.local_desc', 'Files stay on your machine with fast Markdown workflows.')}
 - [x] ⚡ **${t('mock.intro.lightweight_label', 'Lightweight:')}** ${t('mock.intro.lightweight_desc', 'Tauri-based architecture, under 20MB.')}
 - [x] ✍️ **${t('mock.intro.modes_label', 'Editing Modes:')}** ${t('mock.intro.modes_desc', 'Switch between WYSIWYG and Source Code.')}
 - [x] 📄 **${t('mock.intro.files_label', 'File Support:')}** ${t('mock.intro.files_desc', 'Handles Markdown, JSON, TXT, and more.')}
@@ -25,10 +25,10 @@ ${t('mock.intro.footer', 'Enjoy experimenting with the editor!')}
   "features": [
     "WYSIWYG",
     "Source Code",
-    "AI Assistant",
+    "File Search",
     "Custom Themes"
   ],
-  "description": "${t('mock.config.description', 'Next-generation professional text editor designed for AI.')}"
+  "description": "${t('mock.config.description', 'Next-generation professional text editor for focused Markdown work.')}"
 }`
 
   return {

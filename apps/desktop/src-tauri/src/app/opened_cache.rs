@@ -69,18 +69,14 @@ impl OpenedCache {
                     Self::default()
                 }
             }
-            Err(err) => {
-                println!("err: {:?}", err);
-                Self::default()
-            }
+            Err(_) => Self::default(),
         }
     }
 
     pub fn write(self) -> Self {
         let path = &Self::get_path();
         if let Ok(v) = serde_json::to_string_pretty(&self) {
-            std::fs::write(path, v).unwrap_or_else(|err| {
-                println!("err: {:?}", err);
+            std::fs::write(path, v).unwrap_or_else(|_| {
                 Self::default().write();
             });
         } else {

@@ -56,8 +56,6 @@ At present, MarkFlowy needs about 3 - 6 months to perform reconstruction, which 
 
 ## ${en:'Features', zh:'功能特性', ja:'機能'}
 
-- **Built-in AI:** Currently supports Copilot, one-click export of dialogues, translation of articles to any language, and article summaries. It supports large models like `DeepSeek` and `Chatgpt`, making them your intelligent assistant.<!--en-->
-<!--en-->
 - **lightweight:** MarkFlowy is based on Tauri, boasting a size of less than 20MB and improved performance.<!--en-->
 <!--en-->
 - **Multiple Editing Modes:** MarkFlowy uses Prosemirror as its core editor, offering high extensibility and a superior editing experience. It supports multiple editing modes, such as source code and wysiwyg.<!--en-->
@@ -73,7 +71,6 @@ At present, MarkFlowy needs about 3 - 6 months to perform reconstruction, which 
 - **File Management**: A powerful file tree that supports drag-and-drop movement, global search, and other common functions.<!--en-->
 <!--en-->
 - **Multi-language support:** Supports multiple languages ​​including Chinese, English, Spanish, Japanese, and French.<!--en-->
-- **内置 AI**：当前支持Copilot、一键导出对话、翻译文章到任何语言以及获取文章摘要，支持`DeepSeek`、`Chatgpt`等大模型让他们成为你的智能助手。<!--zh-->
 - **超轻量**：MarkFlowy 基于 tauri, 拥有小于 20MB 的体积和更好的性能。<!--zh-->
 - **多编辑模式**：MarkFlowy 使用 prosemirror 作为编辑器核心, 不仅扩展性高，编辑体验也很好。并支持多种编辑模式，如`source code`, `wysiwyg`。<!--zh-->
 - **编辑多种文件**：除了 Markdown，还支持编辑 `json`、`txt` 等文件类型。<!--zh-->
@@ -82,8 +79,6 @@ At present, MarkFlowy needs about 3 - 6 months to perform reconstruction, which 
 - **图片处理**：当你粘贴图片到 MarkFlowy，可以选择粘贴到指定的路径，或者转为 `base64`。<!--zh-->
 - **文件管理**：功能强大的文件树，支持拖拽移动、全局搜索等常用功能。<!--zh-->
 - **多语言支持**：支持中文、英文、西班牙语、日语、法语等多种语言。<!--zh-->
-- **AI搭載:** 現在はCopilot、ワンタッチで会話をエクスポートし、文章を任意の言語に翻訳し、記事の要約を取得することをサポートしており、「DeepSeek `」、「Chatgpt」などの大きなモデルをサポートして、彼らをスマートアシスタントにしています。<!--ja-->
-<!--ja-->
 - **軽量:** MarkFlowyはTauriをベースにしており、20MB未満のサイズと優れたパフォーマンスを誇ります。<!--ja-->
 <!--ja-->
 - **複数の編集モード:** MarkFlowyはProsemirrorをコアエディターとして採用し、高い拡張性と優れた編集エクスペリエンスを提供します。ソースコードやWYSIWYGなど、複数の編集モードをサポートしています。<!--ja-->
@@ -133,9 +128,9 @@ You can download it from the [UpgradeLink download page](https://download.upgrad
 其实，**创作 MarkFlowy 的最初灵感，源于几年前和一位朋友一次闲聊**，作为开发者，我们对一款理想 Markdown 编辑器有很多的期待。在尝试过许多现有应用后，我感到它们难以完全满足在高效、美观、轻量与工作流融合上的综合需求。我们共同畅想了一款理想中编辑器的模样。尽管后来我们各自奔赴不同的人生，联系渐少，但那颗渴望创造美好的种子，一直在我心里。<!--zh-->
 **実は、MarkFlowyの最初のインスピレーションは、数年前の友人との何気ない会話から生まれました**。開発者として、私たちは理想的なMarkdownエディタに多くの期待を抱いていました。既存のアプリケーションを数多く試した結果、効率性、美しさ、軽量設計、ワークフロー統合といった点で、私たちの包括的なニーズを完全に満たすことができないと感じました。そこで、私たちは一緒に理想のエディタを思い描きました。その後、別々の道を歩み、連絡も途絶えてしまいましたが、美しいものを作りたいという思いは、常に私の心の中にありました。<!--ja-->
 
-It was this initial aspiration that propelled me step by step to transform MarkFlowy from a concept into reality. I hope to create a lightweight, intelligent editor that not only handles content securely and reliably but also improves editing efficiency through AI.<!--en-->
-最初的念想，推动着我一步步将 MarkFlowy 从构想变为现实。我希望能打造一款轻量、智能的编辑器，让它不仅能安全可靠地处理内容，还能通过 AI 来提高编辑工作的效率。<!--zh-->
-この最初の思いが、MarkFlowyを構想から現実へと一歩一歩変えていく原動力となりました。コンテンツを安全かつ確実に処理するだけでなく、AIによって編集効率も向上させる、軽量でインテリジェントなエディタを作りたいと思っています。<!--ja-->
+It was this initial aspiration that propelled me step by step to transform MarkFlowy from a concept into reality. I hope to create a lightweight editor that handles content securely and reliably while keeping writing efficient.<!--en-->
+最初的念想，推动着我一步步将 MarkFlowy 从构想变为现实。我希望能打造一款轻量的编辑器，让它安全可靠地处理内容，同时保持高效顺手的写作体验。<!--zh-->
+この最初の思いが、MarkFlowyを構想から現実へと一歩一歩変えていく原動力となりました。コンテンツを安全かつ確実に処理し、効率的で快適な執筆体験を提供する軽量なエディタを作りたいと思っています。<!--ja-->
 
 MarkFlowy is a product, and also a testament to a life journey. Through continuous learning and development, it has grown into my response to the concepts of **efficiency, intelligence, and lightweight**. I hope MarkFlowy will become a tool that everyone finds convenient and enjoyable, and I welcome everyone to experience it and provide valuable feedback.<!--en-->
 MarkFlowy 是一个产品，也是一段人生旅程的见证。并在一路的学习与构建中，成长为我对**高效、智能、轻量**这些理念的回应，希望 MarkFlowy 能成为一个让大家感到趁手和愉悦的工具，也欢迎大家能来体验，并提出宝贵的意见。<!--zh-->

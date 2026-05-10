@@ -23,7 +23,7 @@ export const NodeContainer = styled.div<NodeContainerProps>`
       : props.selected
         ? props.theme.fileTreeSelectedBgColor
         : 'transparent'};
-  border: 1px solid ${(props) => (props.selected ? props.theme.borderColorFocused : 'transparent')};
+  border: 1px solid transparent;
   box-sizing: border-box;
 
   &:hover {

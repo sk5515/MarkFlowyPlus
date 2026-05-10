@@ -1,10 +1,10 @@
 import bus from '@/helper/eventBus'
 import { getFileObject } from '@/helper/files'
 import { useEditorStore } from '@/stores'
-import { useCallback, useRef } from 'react'
+import { type MouseEvent, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MfIconButton } from '../../../../ui-v2/Button'
-import { showContextMenu } from '../../../../ui-v2/ContextMenu'
+import { toggleContextMenu } from '../../../../ui-v2/ContextMenu'
 
 export const MoreActions = () => {
   const { activeId } = useEditorStore()
@@ -13,11 +13,18 @@ export const MoreActions = () => {
   
   const curFile = activeId ? getFileObject(activeId) : undefined
 
-  const handleMoreAction = useCallback(() => {
+  const preventMenuButtonClick = useCallback((event?: MouseEvent<HTMLElement>) => {
+    event?.preventDefault()
+    event?.stopPropagation()
+  }, [])
+
+  const handleMoreAction = useCallback((event?: MouseEvent<HTMLElement>) => {
+    preventMenuButtonClick(event)
+
     const rect = ref.current?.getBoundingClientRect()
     if (rect === undefined) return
 
-    showContextMenu({
+    toggleContextMenu({
       x: rect.x,
       y: rect.y + rect.height,
       items: [
@@ -44,7 +51,7 @@ export const MoreActions = () => {
         },
       ],
     })
-  }, [curFile, t])
+  }, [preventMenuButtonClick, t])
 
   if (!curFile) return null
 
@@ -54,7 +61,8 @@ export const MoreActions = () => {
       rounded='smooth'
       iconRef={ref}
       icon={'ri-more-fill'}
-      onClick={handleMoreAction}
+      onMouseDown={handleMoreAction}
+      onClick={preventMenuButtonClick}
     />
   )
 }

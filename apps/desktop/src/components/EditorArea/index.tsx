@@ -3,7 +3,7 @@ import { FindReplace } from '@/components/EditorArea/editorToolBar/FindReplace'
 import { PreviewToolbar } from '@/components/EditorArea/editorToolBar/PreviewToolbar/PreviewToolbar'
 import { SourceCodeToolbar } from '@/components/EditorArea/editorToolBar/SourceCodeToolbar/SourceCodeToolbar'
 import { WysiwygToolbar } from '@/components/EditorArea/editorToolBar/WysiwygToolbar'
-import bus from '@/helper/eventBus'
+import { emitEditorViewTypeSwitch } from '@/helper/editorViewTypeSwitch'
 import { useCommandStore, useEditorStore } from '@/stores'
 import useEditorViewTypeStore from '@/stores/useEditorViewTypeStore'
 import useFileTypeConfigStore from '@/stores/useFileTypeConfigStore'
@@ -40,7 +40,7 @@ function EditorArea() {
             ? EditorViewType.WYSIWYG
             : EditorViewType.SOURCECODE
 
-        bus.emit('editor_toggle_type', targetViewType)
+        emitEditorViewTypeSwitch(targetViewType)
       },
     })
   }, [addCommand])

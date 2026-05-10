@@ -111,9 +111,6 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
     // 使用JSON序列化确保路径中的特殊字符被正确转义
     let escaped_urls = serde_json::to_string(&opened_urls).unwrap_or_else(|_| opened_urls.clone());
 
-    println!("opened_urls:{}", opened_urls);
-    println!("escaped_urls:{}", escaped_urls);
-    println!("path:{}", path.as_ref().unwrap());
     tauri::async_runtime::spawn(async move {
         let mut new_win =
             WebviewWindowBuilder::new(&_app, window_label, WebviewUrl::App("index.html".into()))
@@ -123,7 +120,6 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
                     theme_mode, theme_mode, theme_mode, theme_mode
                 ))
                 .initialization_script(&format!("window.openedUrls = {escaped_urls}"))
-                .initialization_script(&format!("console.log('window.openedUrl:{}')", escaped_urls))
                 .title("MarkFlowyPlus")
                 .resizable(true)
                 .decorations(true)

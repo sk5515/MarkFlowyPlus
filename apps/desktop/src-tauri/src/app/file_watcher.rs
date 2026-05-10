@@ -86,7 +86,7 @@ impl FileWatcher {
                     Ok(event) => {
                         callback(event);
                     }
-                    Err(e) => println!("监听错误: {:?}", e),
+                    Err(e) => eprintln!("监听错误: {:?}", e),
                 },
                 Err(_) => {} // 超时，继续循环检查停止信号
             }
@@ -217,7 +217,7 @@ pub mod cmd {
     use super::{FileWatcherManager, WatcherEvent};
     use lazy_static::lazy_static;
     use std::sync::Mutex;
-    use tauri::{command, AppHandle, Emitter, EventTarget, Manager};
+    use tauri::{command, AppHandle, Emitter, EventTarget};
 
     lazy_static! {
         static ref FILE_WATCHER_MANAGER: Mutex<FileWatcherManager> =
@@ -234,8 +234,6 @@ pub mod cmd {
         let app_clone = _app.clone();
         let key_clone = key.to_string();
         let window_label_clone = window_label.to_string();
-
-        println!("Watching file: {} with key: {}", path, key);
 
         let mut manager = FILE_WATCHER_MANAGER.lock().unwrap();
         manager

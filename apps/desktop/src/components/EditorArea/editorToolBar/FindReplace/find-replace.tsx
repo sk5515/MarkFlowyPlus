@@ -46,14 +46,18 @@ function useFindReplaceOpen() {
 }
 
 const FindReplaceWrapper = styled.div`
-  position: sticky;
-  left: 0;
-  right: 0;
-  top: 200;
+  position: absolute;
+  top: 76px;
+  right: 16px;
+  z-index: 30;
+  width: min(560px, calc(100% - 32px));
+  box-sizing: border-box;
+  padding: 5px;
+  border: 1px solid ${({ theme }) => theme.borderColor};
+  border-radius: 8px;
   background-color: ${({ theme }) => theme.bgColor};
-  backdrop-filter: blur(8px);
-  width: '100%';
-  padding: 8px;
+  box-shadow: 0 10px 30px ${({ theme }) => theme.boxShadowColor};
+  backdrop-filter: blur(10px);
 `
 
 export const FindReplace: FC = () => {
@@ -65,8 +69,8 @@ export const FindReplace: FC = () => {
   if (!open || !editorCtx || !editorCtx.helpers.findRanges) return null
 
   return (
-      <FindReplaceWrapper ref={ref}>
-        <FindReplaceComponent onDismiss={close} editorCtx={editorCtx} />
-      </FindReplaceWrapper>
+    <FindReplaceWrapper ref={ref}>
+      <FindReplaceComponent onDismiss={close} editorCtx={editorCtx} />
+    </FindReplaceWrapper>
   )
 }

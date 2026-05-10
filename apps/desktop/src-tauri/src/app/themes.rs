@@ -28,7 +28,6 @@ pub const APP_THEMES_PATH: &str = "themes";
 pub const APP_LOCAL_THEMES_PATH: &str = "local_themes";
 
 fn build_theme(path: PathBuf) -> Option<Theme> {
-    println!("build_themes: {:?}", path);
     let pkg_path = path.join("package.json");
     let script_file_path = path.join("index.js");
 
@@ -86,11 +85,11 @@ impl AppThemes {
 
     pub async fn init(mut self) -> Self {
         if !exists(&Self::dir_path()) {
-            create_dir(&Self::dir_path());
+            let _ = create_dir(&Self::dir_path());
         }
 
         if !exists(&Self::local_themes_dir_path()) {
-            create_dir(&Self::local_themes_dir_path());
+            let _ = create_dir(&Self::local_themes_dir_path());
         }
 
         let mut themes = vec![];
@@ -181,7 +180,7 @@ pub mod cmd {
         let dest_dir = AppThemes::local_themes_dir_path();
 
         if !exists(&dest_dir) {
-            create_dir(&dest_dir);
+            let _ = create_dir(&dest_dir);
         }
 
         let dest_path = dest_dir.join(format!("{}.css", file_name));

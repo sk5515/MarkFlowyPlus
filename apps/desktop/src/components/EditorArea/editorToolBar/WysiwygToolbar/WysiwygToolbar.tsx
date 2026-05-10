@@ -5,11 +5,13 @@ import { useTranslation } from 'react-i18next'
 import { EditorViewType } from 'rme'
 import styled from 'styled-components'
 import { ToolbarSection, usePriorityHidden } from '../responsive'
+import { SearchToolbarButton } from '../SearchToolbarButton'
 import { CommandButton } from './CommandButton'
-import { MenuButton } from './components/MenuButton'
+import { TableInsertButton } from './components/TableInsertButton'
 
 const ToolbarWrapper = styled.div`
   background-color: ${({ theme }) => theme.bgColor};
+  color: ${({ theme }) => theme.primaryFontColor};
   width: 100%;
   padding: 4px 8px;
   border-bottom: 1px solid ${({ theme }) => theme.borderColor};
@@ -30,6 +32,14 @@ const Divider = styled.div`
   flex-shrink: 0;
 `
 
+const ToolbarRight = styled.div`
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-left: 8px;
+`
+
 export const WysiwygToolbar: FC = () => {
   const { editorCtxMap, activeId } = useEditorStore()
   const { getEditorViewType } = useEditorViewTypeStore()
@@ -40,10 +50,10 @@ export const WysiwygToolbar: FC = () => {
 
   const sections = useMemo(
     () => [
-      { id: 'common', priority: 100 },
       { id: 'history', priority: 90 },
       { id: 'headings', priority: 60 },
       { id: 'formatting', priority: 50 },
+      { id: 'insert', priority: 40 },
       { id: 'blocks', priority: 30 },
     ],
     [],
@@ -61,19 +71,10 @@ export const WysiwygToolbar: FC = () => {
   return (
     <ToolbarWrapper ref={containerRef}>
       <ToolbarSection
-        id='common'
-        registerWidth={registerItemWidth}
-        hidden={hiddenIds.has('common')}
-      >
-        <MenuButton />
-      </ToolbarSection>
-
-      <ToolbarSection
         id='history'
         registerWidth={registerItemWidth}
         hidden={hiddenIds.has('history')}
       >
-        <Divider />
         <CommandButton
           editorCtx={editorCtx}
           commandName='undo'
@@ -144,6 +145,15 @@ export const WysiwygToolbar: FC = () => {
       </ToolbarSection>
 
       <ToolbarSection
+        id='insert'
+        registerWidth={registerItemWidth}
+        hidden={hiddenIds.has('insert')}
+      >
+        <Divider />
+        <TableInsertButton editorCtx={editorCtx} label={t('toolbar.insertTable') || '插入表格'} />
+      </ToolbarSection>
+
+      <ToolbarSection
         id='blocks'
         registerWidth={registerItemWidth}
         hidden={hiddenIds.has('blocks')}
@@ -177,6 +187,9 @@ export const WysiwygToolbar: FC = () => {
           label={t('toolbar.taskList') || 'Task List'}
         />
       </ToolbarSection>
+      <ToolbarRight>
+        <SearchToolbarButton label={t('search.text') || 'Search'} />
+      </ToolbarRight>
     </ToolbarWrapper>
   )
 }

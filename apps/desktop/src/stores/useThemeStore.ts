@@ -53,15 +53,32 @@ const useThemeStore = create<ThemeStore>((set, get) => {
     },
 
     insertTheme: (targetTheme) => {
-      const { themes, setCurThemeByName } = get()
+      const { themes, curTheme, setCurThemeByName } = get()
+      const existingThemeIndex = themes.findIndex((theme) => theme.name === targetTheme.name)
 
-      if (!themes.find((theme) => theme.name === targetTheme.name)) {
-        set((prev) => ({ ...prev, themes: [...themes, targetTheme] }))
+      if (existingThemeIndex >= 0) {
+        const nextThemes = themes.map((theme, index) =>
+          index === existingThemeIndex ? targetTheme : theme,
+        )
+        const isActiveTheme = curTheme.name === targetTheme.name
 
-        const { settingData } = useAppSettingStore.getState()
-        if (settingData.theme === targetTheme.name) {
+        set((prev) => ({
+          ...prev,
+          themes: nextThemes,
+          curTheme: isActiveTheme ? targetTheme : prev.curTheme,
+        }))
+
+        if (isActiveTheme) {
           setCurThemeByName(targetTheme.name)
         }
+        return
+      }
+
+      set((prev) => ({ ...prev, themes: [...themes, targetTheme] }))
+
+      const { settingData } = useAppSettingStore.getState()
+      if (settingData.theme === targetTheme.name) {
+        setCurThemeByName(targetTheme.name)
       }
     },
 

@@ -41,7 +41,7 @@ export async function i18nInit(options?: InitOptions) {
     interpolation: {
       escapeValue: false, // react already safes from xss
     },
-    fallbackLng: 'en',
+    fallbackLng: 'cn',
     ...options,
   })
 }

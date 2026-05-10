@@ -63,37 +63,6 @@ const privacySections: PrivacySection[] = [
           'Your documents and files remain on your local file system',
           "Application settings and preferences are stored locally using Tauri's secure storage",
           'Workspace information and bookmarks are stored locally on your device',
-          'AI chat history (if enabled) is stored locally and never sent to our servers',
-        ],
-      },
-    ],
-  },
-  {
-    title: 'AI Features and Third-Party Services',
-    content: [
-      {
-        type: 'paragraph',
-        text: 'MarkFlowyPlus offers optional AI-powered features that integrate with third-party AI providers:',
-      },
-      {
-        type: 'list',
-        items: [
-          { text: '<strong>OpenAI Integration:</strong> If you choose to use OpenAI features, your API key and requests are sent directly to OpenAI\'s servers. We do not intercept or store your API keys or AI requests.', isHtml: true },
-          { text: '<strong>DeepSeek Integration:</strong> Similar to OpenAI, your DeepSeek API key and requests are sent directly to DeepSeek\'s servers.', isHtml: true },
-          { text: '<strong>Ollama Integration:</strong> For local Ollama deployments, all AI processing happens on your local machine.', isHtml: true },
-          { text: '<strong>Google Gemini Integration:</strong> Your Gemini API key and requests are sent directly to Google\'s servers.', isHtml: true },
-        ],
-      },
-      {
-        type: 'paragraph',
-        text: 'Please review the respective privacy policies of these third-party providers:',
-      },
-      {
-        type: 'list',
-        items: [
-          { text: '<a href="https://openai.com/privacy" target="_blank" rel="noopener noreferrer">OpenAI Privacy Policy</a>', isHtml: true },
-          { text: '<a href="https://www.deepseek.com/privacy" target="_blank" rel="noopener noreferrer">DeepSeek Privacy Policy</a>', isHtml: true },
-          { text: '<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a>', isHtml: true },
         ],
       },
     ],

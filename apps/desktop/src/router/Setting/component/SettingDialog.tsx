@@ -1,11 +1,12 @@
 import { EVENT } from '@/constants'
 import { logger } from '@/helper/logger'
-import { Setting } from '@/router'
 import { currentWindow } from '@/services/windows'
 import { useCommandStore } from '@/stores'
-import { memo, useCallback, useEffect, useState } from 'react'
+import { Suspense, lazy, memo, useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
+
+const Setting = lazy(() => import('@/router/Setting'))
 
 const SettingDialogOverlay = styled.div`
   position: fixed;
@@ -145,7 +146,9 @@ export const SettingDialog = memo(() => {
           </button>
         </div>
         <div className='dialog-content'>
-          <Setting />
+          <Suspense fallback={null}>
+            <Setting />
+          </Suspense>
         </div>
       </SettingDialogWrapper>
     </SettingDialogOverlay>

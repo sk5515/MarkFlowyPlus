@@ -310,7 +310,6 @@ export const Toc = forwardRef<TocRef, TocProps>((props, ref) => {
                 }
               }}
             >
-              <span className="toc-link__chapter">{h.chapter}</span>
               <span className="toc-link__title">{h.title}</span>
             </TocLink>
           </TocListItem>

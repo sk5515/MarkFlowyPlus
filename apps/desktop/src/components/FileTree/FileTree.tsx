@@ -103,6 +103,8 @@ const FileTree: FC<FileTreeProps> = (props) => {
           selection={deferredActiveId}
           indent={16}
           disableMultiSelection
+          renderCursor={() => null}
+          rowClassName='file-tree-row'
           onSelect={(node) => onSelect(node[0]?.data)}
           onMove={onMove}
           onContextMenu={(e) => {
