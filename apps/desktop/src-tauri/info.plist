@@ -21,14 +21,36 @@
         <array>
           <string>md</string>
           <string>markdown</string>
-          <string>json</string>
         </array>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>LSHandlerRank</key>
+        <string>Owner</string>
         <key>CFBundleTypeName</key>
-        <string>Text Document</string>
+        <string>Markdown Document</string>
+        <key>LSItemContentTypes</key>
+        <array>
+          <string>public.markdown</string>
+          <string>net.daringfireball.markdown</string>
+        </array>
+      </dict>
+      <dict>
+        <key>CFBundleTypeExtensions</key>
+        <array>
+          <string>json</string>
+          <string>txt</string>
+        </array>
         <key>CFBundleTypeRole</key>
         <string>Editor</string>
         <key>LSHandlerRank</key>
         <string>Default</string>
+        <key>CFBundleTypeName</key>
+        <string>Text Document</string>
+        <key>LSItemContentTypes</key>
+        <array>
+          <string>public.json</string>
+          <string>public.plain-text</string>
+        </array>
       </dict>
     </array>
   </dict>

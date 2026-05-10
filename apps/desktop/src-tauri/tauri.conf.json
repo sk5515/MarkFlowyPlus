@@ -31,15 +31,33 @@
     "fileAssociations": [
       {
         "ext": [
-          ".md",
-          ".markdown",
-          ".json",
-          ".txt"
+          "md",
+          "markdown"
+        ],
+        "contentTypes": [
+          "public.markdown",
+          "net.daringfireball.markdown"
+        ],
+        "name": "Markdown Document",
+        "description": "Markdown Document",
+        "mimeType": "text/plain",
+        "role": "Editor",
+        "rank": "Owner"
+      },
+      {
+        "ext": [
+          "json",
+          "txt"
+        ],
+        "contentTypes": [
+          "public.json",
+          "public.plain-text"
         ],
         "name": "Text Document",
         "description": "Text Document",
         "mimeType": "text/plain",
-        "role": "Editor"
+        "role": "Editor",
+        "rank": "Default"
       }
     ],
     "createUpdaterArtifacts": true,
