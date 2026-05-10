@@ -46,7 +46,7 @@ pub fn init(app_handle: AppHandle, opened_urls: String) -> Result<(), Box<dyn st
     .initialization_script(&format!("window.openedUrls = `{opened_urls}`"))
     .title("MarkFlowyPlus")
     .resizable(true)
-    .decorations(true)
+    .decorations(!cfg!(target_os = "windows"))
     .fullscreen(false)
     .theme(Some(theme))
     .background_color(window_bg_color)

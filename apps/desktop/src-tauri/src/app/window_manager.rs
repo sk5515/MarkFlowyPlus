@@ -122,7 +122,7 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
                 .initialization_script(&format!("window.openedUrls = {escaped_urls}"))
                 .title("MarkFlowyPlus")
                 .resizable(true)
-                .decorations(true)
+                .decorations(!cfg!(target_os = "windows"))
                 .fullscreen(false)
                 .theme(Some(theme))
                 .background_color(window_bg_color)
