@@ -29,6 +29,20 @@ const scrollbarVisible = (props: ScThemeProps) => css`
     width: 6px;
     height: 6px;
     display: block;
+    background: ${(props.theme as any).scrollbarTrackColor};
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${(props.theme as any).scrollbarTrackColor};
+  }
+
+  &::-webkit-scrollbar-track-piece,
+  &::-webkit-scrollbar-corner,
+  &::-webkit-scrollbar-button {
+    background: ${(props.theme as any).scrollbarTrackColor};
+    width: 0;
+    height: 0;
+    display: none;
   }
 
   &::-webkit-scrollbar-thumb {
@@ -36,7 +50,30 @@ const scrollbarVisible = (props: ScThemeProps) => css`
   }
 
   scrollbar-width: thin;
+  scrollbar-color: ${(props.theme as any).scrollbarThumbColor}
+    ${(props.theme as any).scrollbarTrackColor};
   -ms-overflow-style: auto;
+  overflow: auto;
+`
+
+const scrollbarHiddenScrollable = css`
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-track-piece,
+  &::-webkit-scrollbar-corner,
+  &::-webkit-scrollbar-button,
+  &::-webkit-scrollbar-thumb {
+    background: transparent;
+  }
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   overflow: auto;
 `
 
@@ -166,11 +203,15 @@ export const TocDiv = styled.div<TocDivProps>`
     white-space: normal;
     ${scrollbarHidden};
 
-    &:hover,
-    &.show-scrollbar,
-    .toc-list--expanded & {
-      ${scrollbarVisible};
-    }
+    ${(props) =>
+      props.compact !== false &&
+      css`
+        &:hover,
+        &.show-scrollbar,
+        .toc-list--expanded & {
+          ${scrollbarVisible(props)};
+        }
+      `}
   }
 
   ul {
@@ -238,14 +279,14 @@ export const TocDiv = styled.div<TocDivProps>`
     props.compact === false &&
     css`
       .toc-list {
-        overflow: auto;
+        ${scrollbarHiddenScrollable};
       }
 
       nav {
-        ${scrollbarVisible(props)};
+        ${scrollbarHiddenScrollable};
 
         &:hover {
-          ${scrollbarVisible(props)};
+          ${scrollbarHiddenScrollable};
         }
       }
 
@@ -259,11 +300,11 @@ export const TocDiv = styled.div<TocDivProps>`
       &:hover,
       .toc-list--expanded {
         .toc-list {
-          overflow: auto;
+          ${scrollbarHiddenScrollable};
         }
 
         nav {
-          ${scrollbarVisible(props)};
+          ${scrollbarHiddenScrollable};
         }
 
         ${tocListExpandedAlign};
@@ -284,7 +325,7 @@ export const TocDiv = styled.div<TocDivProps>`
       }
 
       nav:hover {
-        ${scrollbarVisible(props)};
+        ${scrollbarHiddenScrollable};
       }
     `}
 `
@@ -367,6 +408,33 @@ export const TocViewContainer = styled.div<ContainerProps>`
   background: ${(props) => props.theme.rightBarBgColor};
   color: ${(props) => props.theme.primaryFontColor};
   overflow: hidden;
+
+  &,
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  &::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+    background: transparent !important;
+  }
+
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-track-piece,
+  &::-webkit-scrollbar-corner,
+  &::-webkit-scrollbar-button,
+  &::-webkit-scrollbar-thumb,
+  *::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-track-piece,
+  *::-webkit-scrollbar-corner,
+  *::-webkit-scrollbar-button,
+  *::-webkit-scrollbar-thumb {
+    background: transparent !important;
+  }
 
   ${(props) =>
     props.variant === 'editor' &&

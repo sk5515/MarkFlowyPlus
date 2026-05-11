@@ -22,11 +22,10 @@ export const EditorWrapper = styled.div.attrs<EditorWrapperProps>((props) => pro
   ${(props) =>
     props.active
       ? css({
-          maxWidth: props.fullWidth ? 'none' : '800px',
-          margin: '0 auto',
+          maxWidth: 'none',
+          width: '100%',
           paddingBottom: '3rem',
-          marginInlineStart: 'auto',
-          marginInlineEnd: 'auto',
+          ['--editor-content-max-width' as string]: props.fullWidth ? 'none' : '800px',
         })
       : css({
           display: 'none',

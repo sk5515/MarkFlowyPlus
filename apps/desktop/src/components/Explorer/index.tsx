@@ -23,7 +23,10 @@ const Explorer: FC<ExplorerProps> = (props) => {
 
   return (
     <Container className={containerCLs} onContextMenu={handleContextMenu}>
-      <div className='h-full w-full overflow-hidden' ref={(ref) => setDndRootElement(ref)}>
+      <div
+        className='explorer-tree-root h-full w-full overflow-hidden'
+        ref={(ref) => setDndRootElement(ref)}
+      >
         {folderData && folderData.length > 0 ? (
           <FileTree
             data={folderData}

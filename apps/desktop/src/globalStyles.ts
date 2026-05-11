@@ -343,6 +343,57 @@ export const GlobalStyles = createGlobalStyle`
 
   .editor-view-wysiwyg {
     overflow-x: hidden;
+    width: 100%;
+    max-width: none !important;
+  }
+
+  #editor-panel,
+  .editor-view-sourceCode .cm-scroller,
+  .editor-view-wysiwyg .cm-scroller,
+  .markdown-body pre {
+    scrollbar-gutter: stable;
+  }
+
+  .editor-view-sourceCode {
+    width: 100%;
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .editor-view-sourceCode .cm-editor {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .editor-view-sourceCode .cm-scroller {
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding-right: 10px;
+  }
+
+  .editor-view-sourceCode .cm-content {
+    max-width: var(--editor-content-max-width, 800px);
+    min-width: 0;
+    margin-left: 0;
+    margin-right: auto;
+    box-sizing: border-box;
+    padding-right: 18px;
+  }
+
+  .editor-view-wysiwyg > * {
+    width: 100%;
+    max-width: none;
+  }
+
+  .editor-view-wysiwyg .ProseMirror {
+    max-width: var(--editor-content-max-width, 800px);
+    min-width: 0;
+    margin-left: 0;
+    margin-right: auto;
+    box-sizing: border-box;
+    padding-right: 18px;
   }
 
   .editor-view-wysiwyg p[data-placeholder]::before {
