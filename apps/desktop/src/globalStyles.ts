@@ -278,6 +278,7 @@ export const GlobalStyles = createGlobalStyle`
   .editor-view-wysiwyg .cm-copy-btn {
     top: 4px !important;
     right: 4px !important;
+    z-index: 20 !important;
     width: 18px !important;
     height: 18px !important;
     padding: 0 !important;
@@ -289,6 +290,7 @@ export const GlobalStyles = createGlobalStyle`
     line-height: 1;
     opacity: 0.36;
     background: transparent !important;
+    pointer-events: auto !important;
   }
 
   .editor-view-wysiwyg .cm-copy-btn:hover,
@@ -307,6 +309,7 @@ export const GlobalStyles = createGlobalStyle`
     height: 0;
     position: relative;
     z-index: 11;
+    pointer-events: none;
   }
 
   .editor-view-wysiwyg .code-block__reference {
@@ -315,6 +318,7 @@ export const GlobalStyles = createGlobalStyle`
     width: auto !important;
     height: 18px !important;
     align-items: center;
+    pointer-events: auto;
   }
 
   .editor-view-wysiwyg .code-block__languages__input {
@@ -333,6 +337,7 @@ export const GlobalStyles = createGlobalStyle`
 
   .editor-view-wysiwyg .code-block__languages {
     margin-top: 2px !important;
+    pointer-events: auto;
   }
 
   .editor-view-wysiwyg .cm-gutters,
