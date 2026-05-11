@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
-pub mod utils;
 mod release;
+pub mod utils;
 
 #[derive(Parser)]
 #[command(version)]
@@ -21,8 +21,8 @@ pub fn run() {
 
     match &cli.command {
         Some(Commands::Release(name)) => {
-          release::main(name.major, name.minor, name.patch);
-        },
+            release::main(name.major, name.minor, name.patch);
+        }
         None => {}
     }
 }

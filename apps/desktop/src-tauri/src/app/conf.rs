@@ -52,6 +52,69 @@ pub const APP_CONF_PATH: &str = "markflowy.conf.json";
 pub const STORE_KEY: &str = "app_config_v3";
 const DEFAULT_THEME: &str = "MarkFlowyPlus Dark";
 
+pub struct InitialThemeAppearance {
+    pub theme: Theme,
+    pub mode: &'static str,
+    pub background: (u8, u8, u8),
+}
+
+fn initial_theme_appearance_from_name(theme_name: &str) -> InitialThemeAppearance {
+    let normalized = theme_name.trim().to_lowercase();
+
+    match normalized.as_str() {
+        "markflowyplus dark" => InitialThemeAppearance {
+            theme: Theme::Dark,
+            mode: "dark",
+            background: (19, 19, 19),
+        },
+        "github dark" => InitialThemeAppearance {
+            theme: Theme::Dark,
+            mode: "dark",
+            background: (13, 17, 23),
+        },
+        "nord" => InitialThemeAppearance {
+            theme: Theme::Dark,
+            mode: "dark",
+            background: (46, 52, 64),
+        },
+        "vs code dark" => InitialThemeAppearance {
+            theme: Theme::Dark,
+            mode: "dark",
+            background: (30, 30, 30),
+        },
+        "midnight ink" => InitialThemeAppearance {
+            theme: Theme::Dark,
+            mode: "dark",
+            background: (11, 18, 32),
+        },
+        "sepia" => InitialThemeAppearance {
+            theme: Theme::Light,
+            mode: "light",
+            background: (251, 241, 199),
+        },
+        "gitbook" => InitialThemeAppearance {
+            theme: Theme::Light,
+            mode: "light",
+            background: (250, 250, 250),
+        },
+        "quill light" => InitialThemeAppearance {
+            theme: Theme::Light,
+            mode: "light",
+            background: (253, 254, 254),
+        },
+        _ if normalized.contains("dark") => InitialThemeAppearance {
+            theme: Theme::Dark,
+            mode: "dark",
+            background: (19, 19, 19),
+        },
+        _ => InitialThemeAppearance {
+            theme: Theme::Light,
+            mode: "light",
+            background: (255, 255, 255),
+        },
+    }
+}
+
 fn create_store(app: &AppHandle) -> Result<std::sync::Arc<Store<tauri::Wry>>, String> {
     let store_path = "markflowy_store.bin";
 
@@ -309,45 +372,32 @@ impl AppConf {
     }
 
     pub fn theme_mode(app: &AppHandle) -> Theme {
-        let cur_theme = Self::get_theme_with_app(app).to_string();
-
-        if cur_theme == "system" {
-            let mode = match dark_light::detect() {
-                dark_light::Mode::Dark => Theme::Dark,
-                dark_light::Mode::Light => Theme::Light,
-                dark_light::Mode::Default => Theme::Light,
-            };
-
-            return mode;
-        }
-
-        let dark = cur_theme.to_lowercase().to_string().contains("dark");
-        if dark {
-            Theme::Dark
-        } else {
-            Theme::Light
-        }
+        Self::initial_theme_appearance(app).theme
     }
 
     pub fn theme_mode_with_app(app: &AppHandle) -> Theme {
+        Self::initial_theme_appearance(app).theme
+    }
+
+    pub fn initial_theme_appearance(app: &AppHandle) -> InitialThemeAppearance {
         let cur_theme = Self::get_theme_with_app(app).to_string();
 
         if cur_theme == "system" {
-            let mode = match dark_light::detect() {
-                dark_light::Mode::Dark => Theme::Dark,
-                dark_light::Mode::Light => Theme::Light,
-                dark_light::Mode::Default => Theme::Light,
+            return match dark_light::detect() {
+                dark_light::Mode::Dark => InitialThemeAppearance {
+                    theme: Theme::Dark,
+                    mode: "dark",
+                    background: (19, 19, 19),
+                },
+                dark_light::Mode::Light | dark_light::Mode::Default => InitialThemeAppearance {
+                    theme: Theme::Light,
+                    mode: "light",
+                    background: (255, 255, 255),
+                },
             };
-
-            return mode;
         }
 
-        let dark = cur_theme.to_lowercase().to_string().contains("dark");
-        if dark {
-            Theme::Dark
-        } else {
-            Theme::Light
-        }
+        initial_theme_appearance_from_name(&cur_theme)
     }
 }
 

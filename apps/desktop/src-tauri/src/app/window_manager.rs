@@ -31,17 +31,11 @@ pub fn get_window_instances() -> Result<std::collections::HashMap<String, String
 /// 创建新窗口
 #[command]
 pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String, String> {
-    let theme = AppConf::theme_mode(&_app.clone());
-    let theme_mode = match theme {
-        tauri::Theme::Dark => "dark",
-        tauri::Theme::Light => "light",
-        _ => "light",
-    };
-    let window_bg_color = if theme_mode == "dark" {
-        Color(19, 19, 19, 255)
-    } else {
-        Color(255, 255, 255, 255)
-    };
+    let initial_theme = AppConf::initial_theme_appearance(&_app.clone());
+    let theme = initial_theme.theme;
+    let theme_mode = initial_theme.mode;
+    let (bg_r, bg_g, bg_b) = initial_theme.background;
+    let window_bg_color = Color(bg_r, bg_g, bg_b, 255);
     let workspace_path = path.clone().map(PathBuf::from);
 
     // 检查是否已存在打开相同路径的窗口
@@ -114,8 +108,8 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
             WebviewWindowBuilder::new(&_app, window_label, WebviewUrl::App("index.html".into()))
                 .initialization_script(compat::webview_init_script())
                 .initialization_script(&format!(
-                    "window.__MF_INITIAL_THEME_MODE__ = '{}'; document.documentElement.dataset.themeMode = '{}'; document.documentElement.style.colorScheme = '{}'; document.body && (document.body.style.colorScheme = '{}');",
-                    theme_mode, theme_mode, theme_mode, theme_mode
+                    "window.__MF_INITIAL_THEME_MODE__ = '{}'; window.__MF_INITIAL_BG_COLOR__ = 'rgb({}, {}, {})'; document.documentElement.dataset.themeMode = '{}'; document.documentElement.style.colorScheme = '{}'; document.documentElement.style.backgroundColor = window.__MF_INITIAL_BG_COLOR__; document.documentElement.style.setProperty('--mf-initial-bg-color', window.__MF_INITIAL_BG_COLOR__); document.body && (document.body.style.colorScheme = '{}'); document.body && (document.body.style.backgroundColor = window.__MF_INITIAL_BG_COLOR__);",
+                    theme_mode, bg_r, bg_g, bg_b, theme_mode, theme_mode, theme_mode
                 ))
                 .initialization_script(&format!("window.openedUrls = {escaped_urls}"))
                 .title("MarkFlowyPlus")

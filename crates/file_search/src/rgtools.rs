@@ -37,7 +37,9 @@ pub fn search_contents(
 ) -> ContentResults {
     let case_insensitive = !ops.case_sensitive;
     let mut errors = vec![];
-    let matcher = RegexMatcherBuilder::new().case_insensitive(case_insensitive).build(pattern);
+    let matcher = RegexMatcherBuilder::new()
+        .case_insensitive(case_insensitive)
+        .build(pattern);
     if matcher.is_err() {
         return ContentResults::default();
     }
@@ -60,7 +62,8 @@ pub fn search_contents(
                 continue;
             }
             let file = file.unwrap();
-            let result = searcher.search_file(&matcher, &file, printer.sink_with_path(&matcher, &path));
+            let result =
+                searcher.search_file(&matcher, &file, printer.sink_with_path(&matcher, &path));
             if let Err(err) = result {
                 errors.push(err.to_string());
             }
@@ -83,7 +86,11 @@ pub fn search_contents(
                 if !dent.file_type().is_file() {
                     continue;
                 }
-                let result = searcher.search_path(&matcher, dent.path(), printer.sink_with_path(&matcher, dent.path()));
+                let result = searcher.search_path(
+                    &matcher,
+                    dent.path(),
+                    printer.sink_with_path(&matcher, dent.path()),
+                );
                 if let Err(err) = result {
                     errors.push(err.to_string());
                 }
@@ -91,7 +98,13 @@ pub fn search_contents(
         }
     }
     ContentResults {
-        results: printer.into_inner().into_inner().string().split('\n').map(|x| x.to_string()).collect(),
+        results: printer
+            .into_inner()
+            .into_inner()
+            .string()
+            .split('\n')
+            .map(|x| x.to_string())
+            .collect(),
         errors,
     }
 }

@@ -12,7 +12,7 @@
       #root {
         min-height: 100%;
         margin: 0;
-        background: #ffffff;
+        background: var(--mf-initial-bg-color, #ffffff);
         color: #000000;
         color-scheme: light;
       }
@@ -46,11 +46,16 @@
     <script>
       ;(function () {
         var mode = window.__MF_INITIAL_THEME_MODE__
+        var bgColor = window.__MF_INITIAL_BG_COLOR__
         if (mode !== 'dark' && mode !== 'light') {
           mode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
         }
         document.documentElement.dataset.themeMode = mode
         document.documentElement.style.colorScheme = mode
+        if (bgColor) {
+          document.documentElement.style.setProperty('--mf-initial-bg-color', bgColor)
+          document.documentElement.style.backgroundColor = bgColor
+        }
       })()
     </script>
   </head>

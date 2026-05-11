@@ -39,7 +39,6 @@ fn get_old_version() -> String {
 }
 
 fn write_new_version(new_version: String) {
-
     let package_str = std::fs::read_to_string(PACKAGEFILE_URL).unwrap();
     let crates_str = std::fs::read_to_string(CRATESFILE_URL).unwrap();
 
@@ -63,14 +62,11 @@ fn write_new_version(new_version: String) {
 
     fn wait_for_cargo_lock_update() {
         let cargo_lock_path = "Cargo.lock";
-        let initial_modified = fs::metadata(cargo_lock_path)
-            .unwrap()
-            .modified()
-            .unwrap();
-        
+        let initial_modified = fs::metadata(cargo_lock_path).unwrap().modified().unwrap();
+
         let max_wait = Duration::from_secs(10);
         let start = SystemTime::now();
-        
+
         loop {
             if let Ok(metadata) = fs::metadata(cargo_lock_path) {
                 if let Ok(current_modified) = metadata.modified() {
@@ -79,12 +75,12 @@ fn write_new_version(new_version: String) {
                     }
                 }
             }
-            
+
             if SystemTime::now().duration_since(start).unwrap() > max_wait {
                 println!("Warning: Cargo.lock update timeout after 10 seconds");
                 break;
             }
-            
+
             sleep(Duration::from_millis(100));
         }
     }
@@ -93,9 +89,9 @@ fn write_new_version(new_version: String) {
         println!("Releasing version: {new_version}");
         std::fs::write(PACKAGEFILE_URL, new_package_str).unwrap();
         std::fs::write(CRATESFILE_URL, new_crates_str).unwrap();
-        
+
         wait_for_cargo_lock_update();
-        
+
         Command::new("git")
             .arg("add")
             .arg(".")

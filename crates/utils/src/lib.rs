@@ -11,7 +11,7 @@ pub enum FileType {
     Image,
     Json,
     Txt,
-    Directory
+    Directory,
 }
 
 pub fn get_file_type(file_name: &str) -> FileType {
@@ -40,22 +40,21 @@ pub fn is_md_file_name(file_name: &str) -> bool {
 
 pub fn move_files(source_paths: &Vec<PathBuf>, dest_path: &Path) {
     let options = fs_extra::dir::CopyOptions::new();
-  
+
     if !dest_path.exists() {
         fs::create_dir(dest_path).expect("Cannot create destination directory");
     }
-  
+
     let dest = dest_path.to_str().unwrap().to_string();
     let mut sources: Vec<String> = Vec::new();
-  
+
     for path in source_paths {
         sources.push(path.to_str().unwrap().to_string());
     }
-  
+
     fs_extra::move_items(&sources, &dest, &options)
         .expect(&format!("Failed to move files to {}", dest));
-  }
-
+}
 
 pub fn get_relative_path(path: &Path, base_path: &Path) -> PathBuf {
     let mut relative_path = PathBuf::new();

@@ -55,20 +55,90 @@ const selectCodeMirrorContent = (view: CodeMirrorEditorView) => {
   })
 }
 
+const handleCodeBlockSelectAllKeyDown = (event: KeyboardEvent) => {
+  if (!isSelectAllKeyboardEvent(event)) {
+    return
+  }
+
+  const codeMirrorElement = event.currentTarget
+  if (!(codeMirrorElement instanceof HTMLElement)) {
+    return
+  }
+
+  const editorWrapper = codeMirrorElement.closest('#editorarea-wrapper.editor-active')
+  if (!(editorWrapper instanceof HTMLElement)) {
+    return
+  }
+
+  const codeBlockView = CodeMirrorEditorView.findFromDOM(codeMirrorElement)
+  if (!codeBlockView) {
+    return
+  }
+
+  event.preventDefault()
+  event.stopPropagation()
+  event.stopImmediatePropagation()
+  selectCodeMirrorContent(codeBlockView)
+}
+
+const installWysiwygCodeBlockSelectAllHandler = () => {
+  const attachedEditors = new WeakSet<HTMLElement>()
+  const disposers: Array<() => void> = []
+
+  const attach = (root: ParentNode = document) => {
+    root
+      .querySelectorAll<HTMLElement>(
+        '#editorarea-wrapper.editor-view-wysiwyg .cm-editor',
+      )
+      .forEach((codeMirrorElement) => {
+        if (attachedEditors.has(codeMirrorElement)) {
+          return
+        }
+
+        attachedEditors.add(codeMirrorElement)
+        codeMirrorElement.addEventListener('keydown', handleCodeBlockSelectAllKeyDown, {
+          capture: true,
+        })
+        disposers.push(() => {
+          codeMirrorElement.removeEventListener('keydown', handleCodeBlockSelectAllKeyDown, {
+            capture: true,
+          })
+        })
+      })
+  }
+
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node instanceof HTMLElement) {
+          attach(node)
+        }
+      })
+    })
+  })
+
+  attach()
+  observer.observe(document.body, { childList: true, subtree: true })
+
+  return () => {
+    observer.disconnect()
+    disposers.forEach((dispose) => dispose())
+  }
+}
+
 const getWysiwygCodeBlockView = (target?: EventTarget | null) => {
-  const targetElement = target instanceof HTMLElement ? target : null
+  const targetElement =
+    target instanceof HTMLElement ? target : target instanceof Node ? target.parentElement : null
   const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null
   const codeMirrorElement =
     targetElement?.closest('.cm-editor') ??
     activeElement?.closest('.cm-editor') ??
-    document.querySelector('.editor-view-wysiwyg.editor-active .cm-editor.cm-focused')
+    document.querySelector('#editorarea-wrapper.editor-active .cm-editor.cm-focused')
   if (!(codeMirrorElement instanceof HTMLElement)) {
     return null
   }
 
-  const editorWrapper = codeMirrorElement.closest(
-    '#editorarea-wrapper.editor-view-wysiwyg.editor-active',
-  )
+  const editorWrapper = codeMirrorElement.closest('#editorarea-wrapper.editor-active')
   if (!(editorWrapper instanceof HTMLElement) || !(codeMirrorElement instanceof HTMLElement)) {
     return null
   }
@@ -182,6 +252,8 @@ function App() {
   useAppSetup()
 
   useEffect(() => {
+    const uninstallCodeBlockSelectAllHandler = installWysiwygCodeBlockSelectAllHandler()
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!isSelectAllKeyboardEvent(event)) {
         return
@@ -258,10 +330,13 @@ function App() {
       })
     }
 
+    window.addEventListener('keydown', handleKeyDown, { capture: true })
     document.addEventListener('keydown', handleKeyDown, { capture: true })
     document.addEventListener('pointerdown', handlePointerDown, { capture: true })
     document.addEventListener('contextmenu', handleContextMenu, { capture: true })
     return () => {
+      uninstallCodeBlockSelectAllHandler()
+      window.removeEventListener('keydown', handleKeyDown, { capture: true })
       document.removeEventListener('keydown', handleKeyDown, { capture: true })
       document.removeEventListener('pointerdown', handlePointerDown, { capture: true })
       document.removeEventListener('contextmenu', handleContextMenu, { capture: true })

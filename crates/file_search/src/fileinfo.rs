@@ -1,5 +1,5 @@
-use std::borrow::Cow;
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct FileInfo {
@@ -34,5 +34,5 @@ impl FileInfo {
 pub struct Match {
     pub line: usize,
     pub content: String,
-    pub id: String
+    pub id: String,
 }

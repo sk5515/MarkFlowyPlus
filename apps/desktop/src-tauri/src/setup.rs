@@ -21,17 +21,11 @@ pub fn init(app_handle: AppHandle, opened_urls: String) -> Result<(), Box<dyn st
         return Ok(());
     }
 
-    let theme = AppConf::theme_mode(&app_handle.clone());
-    let theme_mode = match theme {
-        tauri::Theme::Dark => "dark",
-        tauri::Theme::Light => "light",
-        _ => "light",
-    };
-    let window_bg_color = if theme_mode == "dark" {
-        Color(19, 19, 19, 255)
-    } else {
-        Color(255, 255, 255, 255)
-    };
+    let initial_theme = AppConf::initial_theme_appearance(&app_handle.clone());
+    let theme = initial_theme.theme;
+    let theme_mode = initial_theme.mode;
+    let (bg_r, bg_g, bg_b) = initial_theme.background;
+    let window_bg_color = Color(bg_r, bg_g, bg_b, 255);
 
     let mut main_win = WebviewWindowBuilder::new(
         &app_handle,
@@ -40,8 +34,8 @@ pub fn init(app_handle: AppHandle, opened_urls: String) -> Result<(), Box<dyn st
     )
     .initialization_script(compat::webview_init_script())
     .initialization_script(&format!(
-        "window.__MF_INITIAL_THEME_MODE__ = '{}'; document.documentElement.dataset.themeMode = '{}'; document.documentElement.style.colorScheme = '{}'; document.body && (document.body.style.colorScheme = '{}');",
-        theme_mode, theme_mode, theme_mode, theme_mode
+        "window.__MF_INITIAL_THEME_MODE__ = '{}'; window.__MF_INITIAL_BG_COLOR__ = 'rgb({}, {}, {})'; document.documentElement.dataset.themeMode = '{}'; document.documentElement.style.colorScheme = '{}'; document.documentElement.style.backgroundColor = window.__MF_INITIAL_BG_COLOR__; document.documentElement.style.setProperty('--mf-initial-bg-color', window.__MF_INITIAL_BG_COLOR__); document.body && (document.body.style.colorScheme = '{}'); document.body && (document.body.style.backgroundColor = window.__MF_INITIAL_BG_COLOR__);",
+        theme_mode, bg_r, bg_g, bg_b, theme_mode, theme_mode, theme_mode
     ))
     .initialization_script(&format!("window.openedUrls = `{opened_urls}`"))
     .title("MarkFlowyPlus")

@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::ffi::OsString;
 use std::path::PathBuf;
@@ -7,7 +8,6 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
-use serde::{Deserialize, Serialize};
 
 use clipboard::{ClipboardContext, ClipboardProvider};
 use ignore::WalkBuilder;
@@ -63,18 +63,21 @@ impl Manager {
         }
     }
     pub fn stop(&mut self) {
-        self.must_stop.store(true, std::sync::atomic::Ordering::Relaxed);
+        self.must_stop
+            .store(true, std::sync::atomic::Ordering::Relaxed);
     }
 
     pub fn search(&mut self, search: Search) {
         let mut ops = self.options.lock().unwrap();
         self.id += 1;
-        self.must_stop.store(false, std::sync::atomic::Ordering::Relaxed);
+        self.must_stop
+            .store(false, std::sync::atomic::Ordering::Relaxed);
         ops.last_dir = search.dir.clone();
         if !search.name_text.is_empty() && !ops.name_history.contains(&search.name_text) {
             ops.name_history.push(search.name_text.clone());
         }
-        if !search.contents_text.is_empty() && !ops.content_history.contains(&search.contents_text) {
+        if !search.contents_text.is_empty() && !ops.content_history.contains(&search.contents_text)
+        {
             ops.content_history.push(search.contents_text.clone());
         }
         drop(ops);
@@ -125,8 +128,15 @@ impl Manager {
         if !search.name_text.is_empty() {
             thread::spawn(move || {
                 let start = Instant::now();
-                Manager::find_names(&search1, options1, message_number, file_sender1.clone(), must_stop1);
-                if let Err(err) = file_sender1.send(Message::Done(message_number, start.elapsed())) {
+                Manager::find_names(
+                    &search1,
+                    options1,
+                    message_number,
+                    file_sender1.clone(),
+                    must_stop1,
+                );
+                if let Err(err) = file_sender1.send(Message::Done(message_number, start.elapsed()))
+                {
                     eprintln!("Manager: Could not send result {message_number} {err:?}");
                 }
             });
@@ -138,22 +148,42 @@ impl Manager {
         if !search.contents_text.is_empty() && search.name_text.is_empty() {
             thread::spawn(move || {
                 let start = Instant::now();
-                let files = Manager::find_contents(&search.contents_text, &search.dir, None, options2, must_stop2);
+                let files = Manager::find_contents(
+                    &search.contents_text,
+                    &search.dir,
+                    None,
+                    options2,
+                    must_stop2,
+                );
                 file_sender
-                    .send(Message::ContentFiles(files.results, message_number, start.elapsed()))
+                    .send(Message::ContentFiles(
+                        files.results,
+                        message_number,
+                        start.elapsed(),
+                    ))
                     .unwrap();
                 file_sender.send(Message::FileErrors(files.errors)).unwrap();
-                file_sender.send(Message::Done(message_number, start.elapsed())).unwrap();
+                file_sender
+                    .send(Message::Done(message_number, start.elapsed()))
+                    .unwrap();
             });
         }
     }
 
-    fn find_names(search: &Search, options: Options, id: usize, file_sender: Sender<Message>, must_stop: Arc<AtomicBool>) {
+    fn find_names(
+        search: &Search,
+        options: Options,
+        id: usize,
+        file_sender: Sender<Message>,
+        must_stop: Arc<AtomicBool>,
+    ) {
         let text = &search.name_text;
         let dir = &search.dir;
         let ftype = options.name.file_types;
         let sens = options.name.case_sensitive;
-        let re = regex::RegexBuilder::new(text).case_insensitive(!sens).build();
+        let re = regex::RegexBuilder::new(text)
+            .case_insensitive(!sens)
+            .build();
         if re.is_err() {
             return;
         }
@@ -208,7 +238,9 @@ impl Manager {
                     _ => (),
                 }
 
-                let is_match = re.clone().is_match(dent.file_name().to_str().unwrap_or_default());
+                let is_match = re
+                    .clone()
+                    .is_match(dent.file_name().to_str().unwrap_or_default());
 
                 if is_match {
                     let mut must_add = true;
@@ -221,7 +253,10 @@ impl Manager {
                             let cont = Manager::find_contents(
                                 &search.contents_text,
                                 dir,
-                                Some(HashSet::from_iter([dent.path().to_string_lossy().to_string()])),
+                                Some(HashSet::from_iter([dent
+                                    .path()
+                                    .to_string_lossy()
+                                    .to_string()])),
                                 options.clone(),
                                 must_stop.clone(),
                             );
@@ -277,7 +312,13 @@ impl Manager {
         options: Options,
         must_stop: Arc<AtomicBool>,
     ) -> ContentFileInfoResults {
-        let content_results = rgtools::search_contents(text, &[OsString::from_str(dir).unwrap()], allowed_files, options.content, must_stop);
+        let content_results = rgtools::search_contents(
+            text,
+            &[OsString::from_str(dir).unwrap()],
+            allowed_files,
+            options.content,
+            must_stop,
+        );
         let strings = content_results.results;
         let errors = content_results.errors;
 
@@ -295,10 +336,24 @@ impl Manager {
                     FileInfo {
                         id: uuid::Uuid::new_v4().to_string(),
                         path: f[0].into(),
-                        relative_path: pb.strip_prefix(dir).unwrap_or(&pb).to_string_lossy().to_string(),
+                        relative_path: pb
+                            .strip_prefix(dir)
+                            .unwrap_or(&pb)
+                            .to_string_lossy()
+                            .to_string(),
                         matches: vec![],
-                        ext: pb.extension().unwrap_or(&OsString::from("")).to_str().unwrap_or_default().into(),
-                        name: PathBuf::from(f[0]).file_name().unwrap_or_default().to_str().unwrap_or_default().into(),
+                        ext: pb
+                            .extension()
+                            .unwrap_or(&OsString::from(""))
+                            .to_str()
+                            .unwrap_or_default()
+                            .into(),
+                        name: PathBuf::from(f[0])
+                            .file_name()
+                            .unwrap_or_default()
+                            .to_str()
+                            .unwrap_or_default()
+                            .into(),
                         is_folder: pb.is_dir(),
                     },
                 );
@@ -335,7 +390,11 @@ pub struct ContentFileInfoResults {
     pub errors: Vec<String>,
 }
 
-fn message_receiver(internal_receiver: Receiver<Message>, external_sender: Sender<SearchResult>, ops: Arc<Mutex<Options>>) {
+fn message_receiver(
+    internal_receiver: Receiver<Message>,
+    external_sender: Sender<SearchResult>,
+    ops: Arc<Mutex<Options>>,
+) {
     let mut final_names = vec![];
     let mut latest_number = 0;
     let mut tot_elapsed = Duration::from_secs(0);
@@ -368,7 +427,9 @@ fn message_receiver(internal_receiver: Receiver<Message>, external_sender: Sende
                 }
                 //send to output
                 final_names.push(file.clone());
-                external_sender.send(SearchResult::InterimResult(file)).unwrap();
+                external_sender
+                    .send(SearchResult::InterimResult(file))
+                    .unwrap();
             }
             Message::Done(number, elapsed) => {
                 if number != latest_number {
@@ -391,7 +452,9 @@ fn message_receiver(internal_receiver: Receiver<Message>, external_sender: Sende
             Message::Quit => break,
             Message::FileErrors(err) => {
                 // eprintln!("Err: {err:?}");
-                external_sender.send(SearchResult::SearchErrors(err)).unwrap()
+                external_sender
+                    .send(SearchResult::SearchErrors(err))
+                    .unwrap()
             }
         }
     }
