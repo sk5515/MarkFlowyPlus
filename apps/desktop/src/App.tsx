@@ -1,5 +1,6 @@
 import Root from '@/router/Root'
 import useEditorStore from '@/stores/useEditorStore'
+import { EditorView as CodeMirrorEditorView } from '@codemirror/view'
 import { AllSelection } from '@rme-sdk/pm/state'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { useEffect } from 'react'
@@ -37,7 +38,55 @@ const getEditorTargets = () => {
   }
 }
 
+const isSelectAllKeyboardEvent = (event: KeyboardEvent) => {
+  return (
+    (event.key.toLowerCase() === 'a' || event.code === 'KeyA') &&
+    (event.metaKey || event.ctrlKey) &&
+    !event.altKey &&
+    !event.shiftKey
+  )
+}
+
+const selectCodeMirrorContent = (view: CodeMirrorEditorView) => {
+  view.focus()
+  view.dispatch({
+    selection: { anchor: 0, head: view.state.doc.length },
+    scrollIntoView: true,
+  })
+}
+
+const getWysiwygCodeBlockView = (target?: EventTarget | null) => {
+  const targetElement = target instanceof HTMLElement ? target : null
+  const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null
+  const codeMirrorElement =
+    targetElement?.closest('.cm-editor') ??
+    activeElement?.closest('.cm-editor') ??
+    document.querySelector('.editor-view-wysiwyg.editor-active .cm-editor.cm-focused')
+  if (!(codeMirrorElement instanceof HTMLElement)) {
+    return null
+  }
+
+  const editorWrapper = codeMirrorElement.closest(
+    '#editorarea-wrapper.editor-view-wysiwyg.editor-active',
+  )
+  if (!(editorWrapper instanceof HTMLElement) || !(codeMirrorElement instanceof HTMLElement)) {
+    return null
+  }
+
+  if (!editorWrapper.contains(codeMirrorElement)) {
+    return null
+  }
+
+  return CodeMirrorEditorView.findFromDOM(codeMirrorElement)
+}
+
 const selectEditorContent = () => {
+  const activeCodeBlockView = getWysiwygCodeBlockView()
+  if (activeCodeBlockView) {
+    selectCodeMirrorContent(activeCodeBlockView)
+    return
+  }
+
   const { sourceCodeView, wysiwygView, isSourceCode } = getEditorTargets()
 
   if (isSourceCode && sourceCodeView) {
@@ -133,6 +182,22 @@ function App() {
   useAppSetup()
 
   useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!isSelectAllKeyboardEvent(event)) {
+        return
+      }
+
+      const activeCodeBlockView = getWysiwygCodeBlockView(event.target)
+      if (!activeCodeBlockView) {
+        return
+      }
+
+      event.preventDefault()
+      event.stopPropagation()
+      event.stopImmediatePropagation()
+      selectCodeMirrorContent(activeCodeBlockView)
+    }
+
     const handlePointerDown = (event: PointerEvent) => {
       const target = event.target
       if (!(target instanceof HTMLElement)) {
@@ -193,9 +258,11 @@ function App() {
       })
     }
 
+    document.addEventListener('keydown', handleKeyDown, { capture: true })
     document.addEventListener('pointerdown', handlePointerDown, { capture: true })
     document.addEventListener('contextmenu', handleContextMenu, { capture: true })
     return () => {
+      document.removeEventListener('keydown', handleKeyDown, { capture: true })
       document.removeEventListener('pointerdown', handlePointerDown, { capture: true })
       document.removeEventListener('contextmenu', handleContextMenu, { capture: true })
     }

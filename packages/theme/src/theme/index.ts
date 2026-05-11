@@ -483,6 +483,110 @@ const styledVSCodeDarkTheme = {
   scrollbarTrackColor: '#1e1e1e',
 }
 
+// Quill Light Theme
+const styledQuillLightTheme = {
+  ...common,
+
+  // font
+  primaryFontColor: '#12273f',
+  disabledFontColor: '#98a2b3',
+  unselectedFontColor: '#536471',
+  labelFontColor: '#667085',
+
+  accentColor: '#0e9384',
+  accentColorFocused: '#e6f7f4',
+  borderColor: '#d9e2ec',
+  borderColorFocused: '#36b7a8',
+  bgColor: '#fdfefe',
+  bgColorSecondary: '#f4f8fb',
+  hoverColor: '#e8f1f5',
+  warnColor: '#b7791f',
+  dangerColor: '#d92d20',
+  tipsBgColor: '#ecfdf7',
+  successColor: '#12b76a',
+  boxShadowColor: 'rgba(18, 39, 63, 0.08)',
+
+  // app
+  titleBarBgColor: '#edf4f7',
+  titleBarDefaultHoverColor: '#dce9ef',
+  editorTabBgColor: '#edf4f7',
+  editorTabActiveBgColor: '#ffffff',
+  editorToolbarBgColor: '#f4f8fb',
+  fileTreeIndentLineColor: '#d9e2ec',
+  fileTreeSelectedBgColor: '#dff5f1',
+  sideBarHeaderBgColor: '#f4f8fb',
+  sideBarBgColor: '#f4f8fb',
+  statusBarBgColor: '#edf4f7',
+  rightBarBgColor: '#f4f8fb',
+  rightBarHeaderBgColor: '#f4f8fb',
+
+  tocbarProgressBgColor: '#e8f1f5',
+  tocbarProgressActiveBgColor: '#0e9384',
+
+  // components
+  buttonBgColor: '#edf4f7',
+  tooltipBgColor: '#d9e2ec',
+  dialogBgColor: '#ffffff',
+  dialogBackdropColor: '#12273f66',
+  contextMenuBgColor: '#ffffff',
+  contextMenuBgColorHover: '#e8f1f5',
+
+  scrollbarThumbColor: '#9fb3c8',
+  scrollbarTrackColor: '#edf4f7',
+}
+
+// Midnight Ink Theme
+const styledMidnightInkTheme = {
+  ...common,
+
+  // font
+  primaryFontColor: '#e6edf3',
+  disabledFontColor: '#5f6f80',
+  unselectedFontColor: '#9ba8b5',
+  labelFontColor: '#8a98a8',
+
+  accentColor: '#12b187',
+  accentColorFocused: '#123b3a',
+  borderColor: '#263747',
+  borderColorFocused: '#12b187',
+  bgColor: '#0b1220',
+  bgColorSecondary: '#111b2e',
+  hoverColor: '#1b2a3d',
+  warnColor: '#f2b84b',
+  dangerColor: '#f97066',
+  tipsBgColor: '#102235',
+  successColor: '#32d583',
+  boxShadowColor: 'rgba(0, 0, 0, 0.35)',
+
+  // app
+  titleBarBgColor: '#0f1a2a',
+  titleBarDefaultHoverColor: '#1b2a3d',
+  editorTabBgColor: '#0f1a2a',
+  editorTabActiveBgColor: '#0b1220',
+  editorToolbarBgColor: '#111b2e',
+  fileTreeIndentLineColor: '#203145',
+  fileTreeSelectedBgColor: '#123b3a',
+  sideBarHeaderBgColor: '#0f1a2a',
+  sideBarBgColor: '#0f1a2a',
+  statusBarBgColor: '#102235',
+  rightBarBgColor: '#0f1a2a',
+  rightBarHeaderBgColor: '#0f1a2a',
+
+  tocbarProgressBgColor: '#111b2e',
+  tocbarProgressActiveBgColor: '#12b187',
+
+  // components
+  buttonBgColor: '#142237',
+  tooltipBgColor: '#24364a',
+  dialogBgColor: '#0b1220',
+  dialogBackdropColor: '#00000099',
+  contextMenuBgColor: '#111b2e',
+  contextMenuBgColorHover: '#1b2a3d',
+
+  scrollbarThumbColor: '#30455d',
+  scrollbarTrackColor: '#0b1220',
+}
+
 export const lightTheme: MfTheme = {
   name: 'MarkFlowyPlus Light',
   mode: 'light',
@@ -531,6 +635,18 @@ export const vsCodeDarkTheme: MfTheme = {
   styledConstants: styledVSCodeDarkTheme,
 }
 
+export const quillLightTheme: MfTheme = {
+  name: 'Quill Light',
+  mode: 'light',
+  styledConstants: styledQuillLightTheme,
+}
+
+export const midnightInkTheme: MfTheme = {
+  name: 'Midnight Ink',
+  mode: 'dark',
+  styledConstants: styledMidnightInkTheme,
+}
+
 // 所有内置主题列表
 export const builtInThemes: MfTheme[] = [
   lightTheme,
@@ -541,4 +657,6 @@ export const builtInThemes: MfTheme[] = [
   sepiaTheme,
   nordTheme,
   vsCodeDarkTheme,
+  quillLightTheme,
+  midnightInkTheme,
 ]

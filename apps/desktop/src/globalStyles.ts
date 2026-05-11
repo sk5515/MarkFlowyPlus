@@ -326,9 +326,22 @@ export const GlobalStyles = createGlobalStyle`
     height: 18px !important;
     min-height: 18px !important;
     padding: 0 6px !important;
+    border: 0 !important;
     border-radius: ${(props) => props.theme.smallBorderRadius};
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    appearance: none;
     font-size: 11px !important;
     line-height: 18px !important;
+  }
+
+  .editor-view-wysiwyg .code-block__languages__input:focus,
+  .editor-view-wysiwyg .code-block__languages__input:focus-visible {
+    border: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
   }
 
   .editor-view-wysiwyg .code-block__languages__input::placeholder {
