@@ -179,7 +179,7 @@ function Write-ManualNsisInstaller {
 
   $outputName = "$($meta.ProductName)-$($meta.Version)-setup.exe"
   $outputPath = Join-Path $ManualDir $outputName
-  $installDir = '$LOCALAPPDATA\Programs\' + $meta.ProductName
+  $installDir = '$PROGRAMFILES64\' + $meta.ProductName
   $registryKey = "Software\$($meta.ProductName)"
   $uninstallKey = "Software\Microsoft\Windows\CurrentVersion\Uninstall\$($meta.ProductName)"
   $product = ConvertTo-NsisText $meta.ProductName
@@ -193,14 +193,14 @@ function Write-ManualNsisInstaller {
 
   $nsi = @"
 Unicode true
-RequestExecutionLevel user
+RequestExecutionLevel admin
 
 !include "MUI2.nsh"
 
 Name "$product"
 OutFile "$out"
 InstallDir "$installDir"
-InstallDirRegKey HKCU "$regKey" "InstallDir"
+InstallDirRegKey HKLM "$regKey" "InstallDir"
 
 !define MUI_ICON "$icon"
 !define MUI_UNICON "$icon"
@@ -217,19 +217,20 @@ InstallDirRegKey HKCU "$regKey" "InstallDir"
 !insertmacro MUI_LANGUAGE "English"
 
 Section "Install"
+  SetShellVarContext all
   SetOutPath "`$INSTDIR"
   File "/oname=markflowy.exe" "$exe"
 
   WriteUninstaller "`$INSTDIR\Uninstall.exe"
-  WriteRegStr HKCU "$regKey" "InstallDir" "`$INSTDIR"
-  WriteRegStr HKCU "$uninstKey" "DisplayName" "$product"
-  WriteRegStr HKCU "$uninstKey" "DisplayVersion" "$version"
-  WriteRegStr HKCU "$uninstKey" "Publisher" "$publisher"
-  WriteRegStr HKCU "$uninstKey" "DisplayIcon" "`$INSTDIR\markflowy.exe"
-  WriteRegStr HKCU "$uninstKey" "InstallLocation" "`$INSTDIR"
-  WriteRegStr HKCU "$uninstKey" "UninstallString" "`$INSTDIR\Uninstall.exe"
-  WriteRegDWORD HKCU "$uninstKey" "NoModify" 1
-  WriteRegDWORD HKCU "$uninstKey" "NoRepair" 1
+  WriteRegStr HKLM "$regKey" "InstallDir" "`$INSTDIR"
+  WriteRegStr HKLM "$uninstKey" "DisplayName" "$product"
+  WriteRegStr HKLM "$uninstKey" "DisplayVersion" "$version"
+  WriteRegStr HKLM "$uninstKey" "Publisher" "$publisher"
+  WriteRegStr HKLM "$uninstKey" "DisplayIcon" "`$INSTDIR\markflowy.exe"
+  WriteRegStr HKLM "$uninstKey" "InstallLocation" "`$INSTDIR"
+  WriteRegStr HKLM "$uninstKey" "UninstallString" '"`$INSTDIR\Uninstall.exe"'
+  WriteRegDWORD HKLM "$uninstKey" "NoModify" 1
+  WriteRegDWORD HKLM "$uninstKey" "NoRepair" 1
 
   CreateDirectory "`$SMPROGRAMS\$product"
   CreateShortcut "`$SMPROGRAMS\$product\$product.lnk" "`$INSTDIR\markflowy.exe"
@@ -237,14 +238,15 @@ Section "Install"
 SectionEnd
 
 Section "Uninstall"
+  SetShellVarContext all
   Delete "`$DESKTOP\$product.lnk"
   Delete "`$SMPROGRAMS\$product\$product.lnk"
   RMDir "`$SMPROGRAMS\$product"
   Delete "`$INSTDIR\markflowy.exe"
   Delete "`$INSTDIR\Uninstall.exe"
   RMDir "`$INSTDIR"
-  DeleteRegKey HKCU "$uninstKey"
-  DeleteRegKey HKCU "$regKey"
+  DeleteRegKey HKLM "$uninstKey"
+  DeleteRegKey HKLM "$regKey"
 SectionEnd
 "@
 

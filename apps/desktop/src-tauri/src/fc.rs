@@ -1238,56 +1238,69 @@ pub mod cmd {
         tx: std::sync::Arc<std::sync::Mutex<Option<tokio::sync::oneshot::Sender<String>>>>,
     ) {
         let tx_for_error = tx.clone();
-        if let Err(err) = window.with_webview(move |webview| {
+        if let Err(err) = window.with_webview(move |platform_webview| {
             use webview2_com::Microsoft::Web::WebView2::Win32::{
-                ICoreWebView2Environment6, ICoreWebView2_7, PrintToPdfCompletedHandler,
-                COREWEBVIEW2_PRINT_ORIENTATION_PORTRAIT,
+                ICoreWebView2Environment6, ICoreWebView2_7, COREWEBVIEW2_PRINT_ORIENTATION_PORTRAIT,
             };
-            use windows_core::{BOOL, PCWSTR};
+            use webview2_com::PrintToPdfCompletedHandler;
+            use windows_core::{Interface, PCWSTR};
 
-            unsafe {
-                let webview = webview.controller().CoreWebView2()?;
-                let environment = webview.Environment()?.cast::<ICoreWebView2Environment6>()?;
-                let print_settings = environment.CreatePrintSettings()?;
-                print_settings.SetOrientation(COREWEBVIEW2_PRINT_ORIENTATION_PORTRAIT)?;
-                print_settings.SetPageWidth(8.27)?;
-                print_settings.SetPageHeight(11.69)?;
-                print_settings.SetMarginTop(0.0)?;
-                print_settings.SetMarginBottom(0.0)?;
-                print_settings.SetMarginLeft(0.0)?;
-                print_settings.SetMarginRight(0.0)?;
-                print_settings.SetScaleFactor(1.0)?;
-                print_settings.SetShouldPrintBackgrounds(true)?;
-                print_settings.SetShouldPrintHeaderAndFooter(false)?;
-                let webview = webview.cast::<ICoreWebView2_7>()?;
-                let pdf_path: Vec<u16> = path.encode_utf16().chain(std::iter::once(0)).collect();
-                let tx = tx.clone();
-                let handler = PrintToPdfCompletedHandler::create(Box::new(
-                    move |error_code, success: BOOL| {
-                        let message = if error_code.is_err() {
-                            format!("ERROR: WebView2 failed to create PDF: {:?}", error_code)
-                        } else if !success.as_bool() {
-                            "ERROR: WebView2 returned unsuccessful PDF export".to_string()
-                        } else {
-                            "OK".to_string()
-                        };
+            let result = (|| -> windows_core::Result<()> {
+                unsafe {
+                    let webview = platform_webview.controller().CoreWebView2()?;
+                    let environment = platform_webview
+                        .environment()
+                        .cast::<ICoreWebView2Environment6>()?;
+                    let print_settings = environment.CreatePrintSettings()?;
+                    print_settings.SetOrientation(COREWEBVIEW2_PRINT_ORIENTATION_PORTRAIT)?;
+                    print_settings.SetPageWidth(8.27)?;
+                    print_settings.SetPageHeight(11.69)?;
+                    print_settings.SetMarginTop(0.0)?;
+                    print_settings.SetMarginBottom(0.0)?;
+                    print_settings.SetMarginLeft(0.0)?;
+                    print_settings.SetMarginRight(0.0)?;
+                    print_settings.SetScaleFactor(1.0)?;
+                    print_settings.SetShouldPrintBackgrounds(true)?;
+                    print_settings.SetShouldPrintHeaderAndFooter(false)?;
+                    let webview = webview.cast::<ICoreWebView2_7>()?;
+                    let pdf_path: Vec<u16> =
+                        path.encode_utf16().chain(std::iter::once(0)).collect();
+                    let tx = tx.clone();
+                    let handler = PrintToPdfCompletedHandler::create(Box::new(
+                        move |error_code: windows_core::Result<()>, success: bool| {
+                            let message = if error_code.is_err() {
+                                format!("ERROR: WebView2 failed to create PDF: {:?}", error_code)
+                            } else if !success {
+                                "ERROR: WebView2 returned unsuccessful PDF export".to_string()
+                            } else {
+                                "OK".to_string()
+                            };
 
-                        if let Ok(mut sender) = tx.lock() {
-                            if let Some(sender) = sender.take() {
-                                let _ = sender.send(message);
+                            if let Ok(mut sender) = tx.lock() {
+                                if let Some(sender) = sender.take() {
+                                    let _ = sender.send(message);
+                                }
                             }
-                        }
 
-                        Ok(())
-                    },
-                ));
+                            Ok(())
+                        },
+                    ));
 
-                webview.PrintToPdf(
-                    PCWSTR::from_raw(pdf_path.as_ptr()),
-                    &print_settings,
-                    &handler,
-                )?;
-                Ok(())
+                    webview.PrintToPdf(
+                        PCWSTR::from_raw(pdf_path.as_ptr()),
+                        &print_settings,
+                        &handler,
+                    )?;
+                    Ok(())
+                }
+            })();
+
+            if let Err(err) = result {
+                if let Ok(mut sender) = tx.lock() {
+                    if let Some(sender) = sender.take() {
+                        let _ = sender.send(format!("ERROR: failed to export PDF: {}", err));
+                    }
+                }
             }
         }) {
             if let Ok(mut sender) = tx_for_error.lock() {

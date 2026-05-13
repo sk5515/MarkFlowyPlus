@@ -266,6 +266,7 @@ export const GlobalStyles = createGlobalStyle`
     min-width: 0 !important;
     box-sizing: border-box;
     overflow-x: auto !important;
+    background-color: ${(props) => props.theme.bgColorSecondary} !important;
   }
 
   .editor-view-wysiwyg .cm-scroller {
@@ -273,6 +274,7 @@ export const GlobalStyles = createGlobalStyle`
     max-width: 100% !important;
     min-width: 0 !important;
     overflow-x: auto !important;
+    background-color: ${(props) => props.theme.bgColorSecondary} !important;
   }
 
   .editor-view-wysiwyg .cm-copy-btn {
@@ -453,10 +455,12 @@ export const GlobalStyles = createGlobalStyle`
     width: max-content;
     min-width: 100%;
     padding-right: 24px;
+    background-color: ${(props) => props.theme.bgColorSecondary} !important;
   }
 
   .editor-view-wysiwyg .cm-line {
     min-width: 0;
+    background-color: ${(props) => props.theme.bgColorSecondary} !important;
   }
 
   #editor-panel::-webkit-scrollbar:horizontal,
