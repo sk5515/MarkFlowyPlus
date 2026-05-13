@@ -1,4 +1,4 @@
-const TEXT_INPUT_SELECTOR = 'input, textarea, [contenteditable="true"], .cm-content'
+const TEXT_INPUT_SELECTOR = 'input, textarea, .cm-content'
 
 const disableTextInputAssistance = (element: Element) => {
   if (!(element instanceof HTMLElement)) {

@@ -13,7 +13,7 @@
     "test": "vitest run",
     "test:dev": "vitest --ui",
     "delete": "rimraf node_modules",
-    "postinstall": "patch-package && node scripts/patch-rme-slash-menu.cjs && node scripts/patch-rme-codeblock-select-all.cjs && node scripts/patch-remixicon-fonts.cjs"
+    "postinstall": "patch-package && node scripts/patch-rme-slash-menu.cjs && node scripts/patch-rme-codeblock-select-all.cjs && node scripts/patch-rme-inline-ime.cjs && node scripts/patch-remixicon-fonts.cjs"
   },
   "dependencies": {
     "@ebay/nice-modal-react": "^1.2.13",

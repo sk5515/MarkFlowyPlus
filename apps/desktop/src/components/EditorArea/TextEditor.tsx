@@ -139,6 +139,10 @@ function TextEditor(props: TextEditorProps) {
   const editorRef = useRef<EditorRef>(null)
   const editorContextRef = useRef<EditorChangeEventParams>(null)
   const switchPositionRef = useRef<EditorSwitchPosition | null>(null)
+  const isComposingRef = useRef(false)
+  const pendingCompositionChangeRef = useRef(false)
+  const deferredWysiwygChangeFrameRef = useRef<number | null>(null)
+  const deferredWysiwygChangeTimerRef = useRef<number | null>(null)
 
   const normalizeLineText = useCallback((line: string) => {
     return line
@@ -283,12 +287,29 @@ function TextEditor(props: TextEditorProps) {
     wrapper.style.setProperty('--editor-code-block-max-width', `${availableWidth}px`)
   }, [])
 
+  const isWysiwygImeLocked = useCallback(
+    (view: typeof delegate.manager.view | null | undefined = delegate.manager.view) => {
+      const imeLockUntil =
+        (view as (typeof delegate.manager.view & { __markflowyImeLockUntil?: number }) | null)
+          ?.__markflowyImeLockUntil ?? 0
+
+      return Boolean(isComposingRef.current || view?.composing || Date.now() < imeLockUntil)
+    },
+    [delegate.manager.view],
+  )
+
   const updateHeadingIndicator = useCallback(
     (state?: EditorChangeEventParams['state']) => {
       const wrapper = editorWrapperRef.current
       const view = delegate.manager.view
 
-      if (!active || editorViewType !== EditorViewType.WYSIWYG || !wrapper || !view) {
+      if (
+        !active ||
+        editorViewType !== EditorViewType.WYSIWYG ||
+        !wrapper ||
+        !view ||
+        isWysiwygImeLocked(view)
+      ) {
         setHeadingIndicator(null)
         return
       }
@@ -360,7 +381,7 @@ function TextEditor(props: TextEditorProps) {
 
       showIndicator(level, rect)
     },
-    [active, delegate.manager.view, editorViewType],
+    [active, delegate.manager.view, editorViewType, isWysiwygImeLocked],
   )
 
   useMount(async () => {
@@ -372,6 +393,14 @@ function TextEditor(props: TextEditorProps) {
     const { delIdStateMap } = useEditorStateStore.getState()
 
     delIdStateMap(id)
+    if (deferredWysiwygChangeFrameRef.current !== null) {
+      window.cancelAnimationFrame(deferredWysiwygChangeFrameRef.current)
+      deferredWysiwygChangeFrameRef.current = null
+    }
+    if (deferredWysiwygChangeTimerRef.current !== null) {
+      window.clearTimeout(deferredWysiwygChangeTimerRef.current)
+      deferredWysiwygChangeTimerRef.current = null
+    }
   })
 
   useLayoutEffect(() => {
@@ -423,6 +452,9 @@ function TextEditor(props: TextEditorProps) {
     const editorPanel = document.querySelector('#editor-panel') as HTMLElement | null
     let updateFrame = 0
     const update = () => {
+      if (isWysiwygImeLocked(view)) {
+        return
+      }
       window.cancelAnimationFrame(updateFrame)
       updateFrame = window.requestAnimationFrame(() => updateHeadingIndicator())
     }
@@ -453,7 +485,13 @@ function TextEditor(props: TextEditorProps) {
       window.removeEventListener('resize', update)
       clear()
     }
-  }, [active, delegate.manager.view, editorViewType, updateHeadingIndicator])
+  }, [
+    active,
+    delegate.manager.view,
+    editorViewType,
+    isWysiwygImeLocked,
+    updateHeadingIndicator,
+  ])
 
   useLayoutEffect(() => {
     const init = async () => {
@@ -619,6 +657,119 @@ function TextEditor(props: TextEditorProps) {
       debounceSave()
     }
   }, [debounceSave])
+
+  const applyEditorChangeState = useCallback(
+    (params: EditorChangeEventParams) => {
+      const { tr, helpers } = params
+      const { getCharacterCount, getWordCount } = helpers
+
+      useEditorCounterStore.getState().addEditorCounter({
+        id,
+        data: {
+          characterCount: getCharacterCount(),
+          wordCount: getWordCount(),
+        },
+      })
+
+      if (!active) return
+      editorContextRef.current = params
+      updateHeadingIndicator(params.state)
+
+      if (tr?.docChanged && !tr.getMeta('APPLY_MARKS')) {
+        const state = {
+          hasUnsavedChanges: true,
+          undoDepth: helpers.undoDepth(),
+        }
+        const { setIdStateMap } = useEditorStateStore.getState()
+
+        setIdStateMap(id, state)
+        debounceRefreshToc()
+        const curFile = getFileObject(id)
+        if (settingData.autosave && curFile?.path) {
+          debounceSaveHandler()
+        }
+      }
+    },
+    [id, debounceSaveHandler, active, debounceRefreshToc, settingData, updateHeadingIndicator],
+  )
+
+  const flushDeferredWysiwygChange = useCallback(() => {
+    deferredWysiwygChangeTimerRef.current = null
+    const pendingParams = editorContextRef.current
+    if (!pendingParams || isComposingRef.current || delegate.manager.view?.composing) {
+      return
+    }
+
+    applyEditorChangeState(pendingParams)
+    pendingCompositionChangeRef.current = false
+  }, [applyEditorChangeState, delegate.manager.view])
+
+  const scheduleDeferredWysiwygChange = useCallback(() => {
+    if (deferredWysiwygChangeFrameRef.current !== null) {
+      window.cancelAnimationFrame(deferredWysiwygChangeFrameRef.current)
+      deferredWysiwygChangeFrameRef.current = null
+    }
+    if (deferredWysiwygChangeTimerRef.current !== null) {
+      window.clearTimeout(deferredWysiwygChangeTimerRef.current)
+      deferredWysiwygChangeTimerRef.current = null
+    }
+
+    deferredWysiwygChangeTimerRef.current = window.setTimeout(() => {
+      deferredWysiwygChangeFrameRef.current = window.requestAnimationFrame(() => {
+        deferredWysiwygChangeFrameRef.current = null
+        flushDeferredWysiwygChange()
+      })
+    }, 350)
+  }, [flushDeferredWysiwygChange])
+
+  useLayoutEffect(() => {
+    const view = delegate.manager.view
+    if (!view || editorViewType !== EditorViewType.WYSIWYG) {
+      return
+    }
+
+    const handleCompositionStart = () => {
+      isComposingRef.current = true
+      ;(view as typeof view & { __markflowyImeLockUntil?: number }).__markflowyImeLockUntil =
+        Number.POSITIVE_INFINITY
+      if (deferredWysiwygChangeFrameRef.current !== null) {
+        window.cancelAnimationFrame(deferredWysiwygChangeFrameRef.current)
+        deferredWysiwygChangeFrameRef.current = null
+      }
+      if (deferredWysiwygChangeTimerRef.current !== null) {
+        window.clearTimeout(deferredWysiwygChangeTimerRef.current)
+        deferredWysiwygChangeTimerRef.current = null
+      }
+    }
+
+    const handleCompositionEnd = () => {
+      isComposingRef.current = false
+      ;(view as typeof view & { __markflowyImeLockUntil?: number }).__markflowyImeLockUntil =
+        Date.now() + 1000
+
+      if (pendingCompositionChangeRef.current) {
+        scheduleDeferredWysiwygChange()
+      }
+    }
+
+    view.dom.addEventListener('compositionstart', handleCompositionStart)
+    view.dom.addEventListener('compositionend', handleCompositionEnd)
+
+    return () => {
+      view.dom.removeEventListener('compositionstart', handleCompositionStart)
+      view.dom.removeEventListener('compositionend', handleCompositionEnd)
+      isComposingRef.current = false
+      pendingCompositionChangeRef.current = false
+      if (deferredWysiwygChangeFrameRef.current !== null) {
+        window.cancelAnimationFrame(deferredWysiwygChangeFrameRef.current)
+        deferredWysiwygChangeFrameRef.current = null
+      }
+      if (deferredWysiwygChangeTimerRef.current !== null) {
+        window.clearTimeout(deferredWysiwygChangeTimerRef.current)
+        deferredWysiwygChangeTimerRef.current = null
+      }
+    }
+  }, [delegate.manager.view, editorViewType, scheduleDeferredWysiwygChange])
 
   useLayoutEffect(() => {
     setSaveOpenedEditorEntries(id, () => saveHandler({ active: true }))
@@ -1102,9 +1253,8 @@ function TextEditor(props: TextEditorProps) {
         height: '100%',
       },
       wysiwygTextContainerProps: {
-        spellCheck: false,
-        autoCorrect: 'off',
-        autoCapitalize: 'off',
+        spellCheck: true,
+        autoCorrect: 'on',
       },
       sourceCodeTextContainerProps: {
         spellCheck: false,
@@ -1137,40 +1287,23 @@ function TextEditor(props: TextEditorProps) {
 
   const handleChange: EditorChangeHandler = useCallback(
     (params) => {
-      const { tr, helpers } = params
-      const { getCharacterCount, getWordCount } = helpers
-
-      const characterCount = getCharacterCount()
-      const wordCount = getWordCount()
-
-      useEditorCounterStore.getState().addEditorCounter({
-        id,
-        data: {
-          characterCount,
-          wordCount,
-        },
-      })
-
-      if (!active) return
       editorContextRef.current = params
-      updateHeadingIndicator(params.state)
 
-      if (tr?.docChanged && !tr.getMeta('APPLY_MARKS')) {
-        const state = {
-          hasUnsavedChanges: true,
-          undoDepth: helpers.undoDepth(),
-        }
-        const { setIdStateMap } = useEditorStateStore.getState()
+      if (editorViewType === EditorViewType.WYSIWYG) {
+        pendingCompositionChangeRef.current =
+          pendingCompositionChangeRef.current ||
+          Boolean(params.tr?.docChanged && !params.tr.getMeta('APPLY_MARKS'))
 
-        setIdStateMap(id, state)
-        debounceRefreshToc()
-        const curFile = getFileObject(id)
-        if (settingData.autosave && curFile?.path) {
-          debounceSaveHandler()
+        if (!isComposingRef.current && !delegate.manager.view?.composing) {
+          scheduleDeferredWysiwygChange()
         }
+
+        return
       }
+
+      applyEditorChangeState(params)
     },
-    [id, debounceSaveHandler, active, debounceRefreshToc, settingData, updateHeadingIndicator],
+    [editorViewType, delegate.manager.view, scheduleDeferredWysiwygChange, applyEditorChangeState],
   )
 
   if (status === TextEditorStatus.NOTEXIST) {
