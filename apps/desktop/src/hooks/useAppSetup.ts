@@ -108,6 +108,44 @@ async function handleOpenedPaths(openedPaths: string[]) {
   }
 }
 
+async function getDefaultWorkspacePath(recentWorkspaces?: WorkspaceInfo[]) {
+  const fixedWorkspacePath = useAppSettingStore.getState().settingData.fixed_workspace_path
+
+  if (typeof fixedWorkspacePath === 'string' && fixedWorkspacePath) {
+    try {
+      const isFixedWorkspaceDir = await invoke<boolean>('is_dir', { path: fixedWorkspacePath })
+      if (isFixedWorkspaceDir) {
+        return fixedWorkspacePath
+      }
+    } catch (error) {
+      logger.warn('Fixed workspace path is not available', error)
+    }
+  }
+
+  if (recentWorkspaces) {
+    return recentWorkspaces[0]?.path || ''
+  }
+
+  const openedCache = await invoke<{ recent_workspaces: WorkspaceInfo[] }>('get_opened_cache')
+  return openedCache.recent_workspaces[0]?.path || ''
+}
+
+async function ensureDefaultWorkspaceLoaded(recentWorkspaces?: WorkspaceInfo[]) {
+  if (useEditorStore.getState().getRootPath()) {
+    return
+  }
+
+  const targetWorkspacePath = await getDefaultWorkspacePath(recentWorkspaces)
+  if (!targetWorkspacePath) {
+    return
+  }
+
+  const { setFolderData } = useEditorStore.getState()
+  await readDirectory(targetWorkspacePath).then((res) => {
+    setFolderData(res)
+  })
+}
+
 async function appWorkspaceSetup() {
   const { setRecentWorkspaces } = useOpenedCacheStore.getState()
   const { setFolderData, addOpenedFile, setActiveId } = useEditorStore.getState()
@@ -123,6 +161,8 @@ async function appWorkspaceSetup() {
     const recentWorkspaces = getOpenedCacheRes.recent_workspaces
     setRecentWorkspaces(recentWorkspaces)
 
+    const targetWorkspacePath = await getDefaultWorkspacePath(recentWorkspaces)
+
     if (window.openedUrls) {
       const openedPaths = window.openedUrls?.split(',').map((p) => {
         if (p.startsWith('file://')) {
@@ -134,12 +174,12 @@ async function appWorkspaceSetup() {
 
       window.openedUrls = null
 
+      await ensureDefaultWorkspaceLoaded(recentWorkspaces)
       await handleOpenedPaths(openedPaths)
       return
     }
 
-    if (recentWorkspaces.length > 0) {
-      const targetWorkspacePath = recentWorkspaces[0].path
+    if (targetWorkspacePath) {
       const cacheStoreInitPromises = Promise.all([
         cacheStore.get<{
           openedFilePaths: string[]
@@ -295,6 +335,7 @@ const useAppSetup = () => {
           }
           return p
         })
+        await ensureDefaultWorkspaceLoaded()
         await handleOpenedPaths(openedPaths)
         currentWindow.setFocus()
       }

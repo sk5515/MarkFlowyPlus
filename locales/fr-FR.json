@@ -19,6 +19,7 @@
     "value": "Valeur",
     "success": "Succès",
     "import": "Importer",
+    "clear": "Effacer",
     "menu": "Menu"
   },
   "view": {
@@ -179,6 +180,10 @@
         "language": {
           "label": "Langue",
           "desc": "Choisir la langue de l'application."
+        },
+        "fixed_workspace_path": {
+          "label": "Dossier d'espace de travail fixe",
+          "desc": "Lorsque ce dossier est défini, la liste de fichiers à gauche l'ouvre au démarrage. Laissez vide pour utiliser le dossier ouvert le plus récemment."
         }
       },
       "desc": "Paramètres universels de l'application."

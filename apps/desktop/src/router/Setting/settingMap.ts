@@ -36,6 +36,16 @@ export const getSettingMap = () => {
       },
       Misc: {
         i18nKey: 'settings.general.misc.label',
+        fixedWorkspacePath: {
+          key: 'fixed_workspace_path',
+          type: 'path_select',
+          title: {
+            i18nKey: 'settings.general.misc.fixed_workspace_path.label',
+          },
+          desc: {
+            i18nKey: 'settings.general.misc.fixed_workspace_path.desc',
+          },
+        },
         language: {
           key: 'language',
           type: 'select',

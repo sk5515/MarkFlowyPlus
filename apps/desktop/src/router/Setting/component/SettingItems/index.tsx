@@ -1,5 +1,6 @@
 import FontListSelectSettingItem from './FontListSelect'
 import InputSettingItem from './Input'
+import PathSelectSettingItem from './PathSelect'
 import SelectSettingItem from './Select'
 import SliderSettingItem from './Slider'
 import StringMapJsonSettingItem from './StringMapJson'
@@ -7,6 +8,7 @@ import SwitchSettingItem from './Switch'
 import {
   isFontListSelectSettingItem,
   isInputSettingItem,
+  isPathSelectSettingItem,
   isSelectSettingItem,
   isSliderSettingItem,
   isStringMapJsonSettingItem,
@@ -32,6 +34,9 @@ const SettingItem: React.FC<SettingItemProps> = (props) => {
 
   if (isStringMapJsonSettingItem(item))
     return <StringMapJsonSettingItem key={item.key} item={item} {...otherProps} />
+
+  if (isPathSelectSettingItem(item))
+    return <PathSelectSettingItem key={item.key} item={item} {...otherProps} />
 
   return <></>
 }

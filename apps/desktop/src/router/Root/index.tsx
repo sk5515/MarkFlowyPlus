@@ -16,10 +16,12 @@ import { SettingDialog } from '../Setting/component/SettingDialog'
 import { StyleSeparator } from './styles'
 
 export const RESIZE_PANEL_STORAGE_KEY = 'root-resize-panel'
+const ROOT_RESIZE_PANEL_IDS = ['root-left', 'root-center', 'root-right']
 
 function Root() {
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: RESIZE_PANEL_STORAGE_KEY,
+    panelIds: ROOT_RESIZE_PANEL_IDS,
     storage: localStorage,
   })
 
@@ -81,7 +83,7 @@ function Root() {
       <TitleBar />
       <Group
         defaultLayout={defaultLayout}
-        onLayoutChange={onLayoutChanged}
+        onLayoutChanged={onLayoutChanged}
         style={{ flex: 1, minHeight: 0, backgroundColor: 'var(--mf-bg-color)' }}
       >
         <Panel

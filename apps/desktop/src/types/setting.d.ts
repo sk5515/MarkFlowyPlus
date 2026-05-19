@@ -16,6 +16,7 @@ declare namespace Setting {
     | SliderSettingItem
     | FontListSelectSettingItem
     | StringMapJsonSettingItem
+    | PathSelectSettingItem
 
   type BaseSettingItem = {
     key: string

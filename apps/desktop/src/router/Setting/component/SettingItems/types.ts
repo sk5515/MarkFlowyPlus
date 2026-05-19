@@ -25,3 +25,9 @@ export function isStringMapJsonSettingItem(
 ): item is Setting.StringMapJsonSettingItem {
   return item.type === 'stringMapJson'
 }
+
+export function isPathSelectSettingItem(
+  item: Setting.SettingItem,
+): item is Setting.PathSelectSettingItem {
+  return item.type === 'path_select'
+}

@@ -19,6 +19,7 @@
     "value": "Value",
     "success": "Success",
     "import": "Import",
+    "clear": "Clear",
     "menu": "Menu"
   },
   "view": {
@@ -220,6 +221,10 @@
         "language": {
           "label": "Language",
           "desc": "Set the language of the app."
+        },
+        "fixed_workspace_path": {
+          "label": "Pinned workspace folder",
+          "desc": "When set, the left file list opens this folder on startup. Leave it empty to use the most recent folder."
         }
       },
       "desc": "Common settings for the application."

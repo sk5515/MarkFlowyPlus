@@ -248,12 +248,12 @@ pub fn run() {
 
                     if let Some(window) = window_manager::get_focused_window(app) {
                         use tauri::Emitter;
+                        window_manager::reveal_window(&window);
                         let _ = window.emit("opened-urls", urls_str.clone());
-                    } else {
-                        if let Some(window) = window_manager::get_last_opened_window(app) {
-                            use tauri::Emitter;
-                            let _ = window.emit("opened-urls", urls_str.clone());
-                        }
+                    } else if let Some(window) = window_manager::get_last_opened_window(app) {
+                        use tauri::Emitter;
+                        window_manager::reveal_window(&window);
+                        let _ = window.emit("opened-urls", urls_str.clone());
                     }
                 }
                 _ => {}

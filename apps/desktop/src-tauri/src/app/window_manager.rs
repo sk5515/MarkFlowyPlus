@@ -3,7 +3,7 @@ use serde_json;
 use std::path::PathBuf;
 use tauri::{
     command, utils::config::Color, webview::PageLoadEvent, AppHandle, Manager, WebviewUrl,
-    WebviewWindowBuilder,
+    WebviewWindow, WebviewWindowBuilder,
 };
 use uuid;
 
@@ -11,6 +11,12 @@ use uuid;
 use tauri::{LogicalPosition, TitleBarStyle};
 
 use super::conf::AppConf;
+
+pub fn reveal_window(window: &WebviewWindow) {
+    let _ = window.show();
+    let _ = window.unminimize();
+    let _ = window.set_focus();
+}
 
 /// 获取所有窗口实例信息
 #[command]
@@ -77,7 +83,7 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
         // 如果找到存在的窗口，聚焦并返回
         if let Some(label) = existing_window_label {
             if let Some(existing_window) = _app.get_webview_window(&label) {
-                let _ = existing_window.show();
+                reveal_window(&existing_window);
                 return Ok(label);
             }
         }
@@ -227,7 +233,7 @@ pub fn get_focused_window(app: &AppHandle) -> Option<tauri::WebviewWindow> {
 #[command]
 pub fn focus_window_by_label(_app: AppHandle, window_label: String) -> Result<bool, String> {
     if let Some(window) = _app.get_webview_window(&window_label) {
-        window.set_focus().map_err(|e| e.to_string())?;
+        reveal_window(&window);
         Ok(true)
     } else {
         Err("Window not found".to_string())

@@ -19,6 +19,7 @@
     "value": "Valor",
     "success": "Éxito",
     "import": "Importar",
+    "clear": "Limpiar",
     "menu": "Menú"
   },
   "view": {
@@ -182,6 +183,10 @@
         "language": {
           "label": "Idioma",
           "desc": "Establecer el idioma de la aplicación."
+        },
+        "fixed_workspace_path": {
+          "label": "Carpeta de espacio de trabajo fija",
+          "desc": "Si se establece, la lista de archivos izquierda abrirá esta carpeta al iniciar. Déjala vacía para usar la carpeta abierta más reciente."
         }
       },
       "desc": "Configuración universal de la aplicación."

@@ -17,6 +17,7 @@ pub fn init(app_handle: AppHandle, opened_urls: String) -> Result<(), Box<dyn st
         let script = format!("window.openedUrls = `{opened_urls}`;");
         let _ = existing_window.eval(&script);
         let _ = existing_window.emit("opened-urls", opened_urls.clone());
+        window_manager::reveal_window(&existing_window);
 
         return Ok(());
     }
