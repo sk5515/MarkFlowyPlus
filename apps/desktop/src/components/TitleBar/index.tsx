@@ -3,7 +3,6 @@ import { EditorViewModeButtons } from '@/components/EditorArea/EditorViewModeBut
 import { currentWindow } from '@/services/windows'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { EditorCount } from '../StatusBar/EditorCount'
-import { LayoutLeftBtn, LayoutRightBtn } from '../StatusBar/LayoutBtn'
 import { CenterMenu } from '../StatusBar/SettingBtn'
 import {
   CenterDragRegion,
@@ -56,8 +55,6 @@ export default function TitleBar() {
     <Container>
       <LeftContainer $isMacOS={isMacOS}>
         <CenterMenu />
-        <LayoutLeftBtn />
-        <LayoutRightBtn />
         <EditorViewModeButtons />
       </LeftContainer>
 

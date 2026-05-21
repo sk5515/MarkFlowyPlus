@@ -132,7 +132,8 @@ pub fn create_new_window(_app: AppHandle, path: Option<String>) -> Result<String
                 })
                 .disable_drag_drop_handler()
                 .inner_size(1200.0, 800.0)
-                .min_inner_size(400.0, 400.0);
+                .min_inner_size(400.0, 400.0)
+                .center();
 
         #[cfg(target_os = "macos")]
         {
