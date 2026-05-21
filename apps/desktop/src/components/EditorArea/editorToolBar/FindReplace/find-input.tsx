@@ -1,5 +1,5 @@
 import { Input } from 'antd'
-import type { FC } from 'react'
+import type { FC, KeyboardEvent } from 'react'
 import styled from 'styled-components'
 
 const StyledInput = styled(Input)`
@@ -45,17 +45,31 @@ export const FindInput: FC<{
   query: string
   setQuery: (query: string) => void
   onFind: () => void
+  onFindNext: () => void
+  onFindPrev: () => void
   total: number
   activeIndex?: number | null
-}> = ({ query, setQuery, onFind, total, activeIndex }) => {
+}> = ({ query, setQuery, onFind, onFindNext, onFindPrev, total, activeIndex }) => {
   const counterLabel = `${total && activeIndex != null ? activeIndex + 1 : 0} of ${total}`
+  const handlePressEnter = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (total > 0 && activeIndex != null) {
+      if (event.shiftKey) {
+        onFindPrev()
+      } else {
+        onFindNext()
+      }
+      return
+    }
+
+    onFind()
+  }
 
   return (
     <StyledInput
       placeholder='Find'
       value={query}
       onChange={(event) => setQuery(event.target.value)}
-      onPressEnter={onFind}
+      onPressEnter={handlePressEnter}
       size='small'
       prefix={<i className='ri-search-line' />}
       suffix={<CountTag>{counterLabel}</CountTag>}

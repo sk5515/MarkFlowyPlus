@@ -87,7 +87,7 @@ export function useFindReplace(ctx: EditorContext): UseFindReplaceReturn {
     setState((state) => ({ ...state, caseSensitive: !state.caseSensitive }))
   }, [])
   const setQuery = useCallback((query: string) => {
-    setState((state) => ({ ...state, query }))
+    setState((state) => ({ ...state, query, activeIndex: null, total: 0 }))
   }, [])
   const setReplacement = useCallback((replacement: string) => {
     setState((state) => ({ ...state, replacement }))

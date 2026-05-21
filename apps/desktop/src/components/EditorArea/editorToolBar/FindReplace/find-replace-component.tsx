@@ -55,6 +55,8 @@ export const FindReplaceComponent: FC<FindReplaceComponentProps> = ({ onDismiss,
           query={query}
           setQuery={setQuery}
           onFind={find}
+          onFindNext={findNext}
+          onFindPrev={findPrev}
           total={total}
           activeIndex={activeIndex}
         />

@@ -19,6 +19,8 @@ const isMacOS =
   (/Mac|iP(hone|[oa]d)/.test(navigator.platform) ||
     /macintosh|mac os x/i.test(navigator.userAgent))
 
+const BEFORE_MINIMIZE_EVENT = 'markflowy:before-minimize'
+
 export default function TitleBar() {
   const [maximized, setMaximized] = useState(false)
 
@@ -45,6 +47,11 @@ export default function TitleBar() {
     setMaximized(await currentWindow.isMaximized())
   }
 
+  const minimize = () => {
+    window.dispatchEvent(new Event(BEFORE_MINIMIZE_EVENT))
+    currentWindow.minimize()
+  }
+
   return (
     <Container>
       <LeftContainer $isMacOS={isMacOS}>
@@ -62,7 +69,7 @@ export default function TitleBar() {
       </RightContainer>
 
       <WindowControls $isMacOS={isMacOS}>
-        <WindowControlButton aria-label='Minimize' onClick={() => currentWindow.minimize()}>
+        <WindowControlButton aria-label='Minimize' onClick={minimize}>
           <i className='ri-subtract-line' />
         </WindowControlButton>
         <WindowControlButton aria-label='Maximize' onClick={toggleMaximize}>
